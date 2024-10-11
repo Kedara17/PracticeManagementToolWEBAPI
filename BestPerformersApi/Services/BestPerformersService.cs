@@ -17,40 +17,23 @@ namespace BestPerformersAPI.Services
             _repository = repository;
             _logger = logger;
         }
-
         // Fetch all Best Performers asynchronously
         public async Task<IEnumerable<BestPerformersDTO>> GetAll()
         {
-            try
-            {
-                var bestPerformers = await _repository.GetAll();
-                return MapToDTO(bestPerformers);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while fetching all best performers.");
-                return new List<BestPerformersDTO>(); // Return an empty list or consider rethrowing an exception.
-            }
+            var bestPerformers = await _repository.GetAll();
+            return MapToDTO(bestPerformers);
         }
 
         // Fetch a single Best Performer by ID asynchronously
         public async Task<BestPerformersDTO> Get(string id)
         {
-            try
+            var bestPerformer = await _repository.Get(id);
+            if (bestPerformer == null)
             {
-                var bestPerformer = await _repository.Get(id);
-                if (bestPerformer == null)
-                {
-                    _logger.LogWarning($"Best performer with id: {id} was not found.");
-                    return null; // Consider throwing a custom exception for not found.
-                }
-                return MapToDTO(bestPerformer);
+                _logger.LogWarning($"Best performer with id: {id} was not found.");
+                return null;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"An error occurred while fetching best performer with id: {id}.");
-                return null; // Consider returning a default object or rethrowing the exception.
-            }
+            return MapToDTO(bestPerformer);
         }
 
         // Add a new Best Performer asynchronously
@@ -62,24 +45,16 @@ namespace BestPerformersAPI.Services
                 return null;
             }
 
-            try
+            var bestPerformer = new BestPerformers
             {
-                var bestPerformer = new BestPerformers
-                {
-                    EmployeeID = bestPerformersDTO.EmployeeID,
-                    Frequency = bestPerformersDTO.Frequency,
-                    ClientID = bestPerformersDTO.ClientID,
-                    ProjectID = bestPerformersDTO.ProjectID
-                };
+                EmployeeID = bestPerformersDTO.EmployeeID,
+                Frequency = bestPerformersDTO.Frequency,
+                ClientID = bestPerformersDTO.ClientID,
+                ProjectID = bestPerformersDTO.ProjectID
+            };
 
-                var createdBestPerformer = await _repository.Create(bestPerformer);
-                return MapToDTO(createdBestPerformer);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while adding a new best performer.");
-                return null; // Handle the response according to your application's needs.
-            }
+            var createdBestPerformer = await _repository.Create(bestPerformer);
+            return MapToDTO(createdBestPerformer);
         }
 
         // Update an existing Best Performer asynchronously
@@ -91,39 +66,23 @@ namespace BestPerformersAPI.Services
                 return null;
             }
 
-            try
+            var bestPerformer = new BestPerformers
             {
-                var bestPerformer = new BestPerformers
-                {
-                    Id = bestPerformersDTO.Id,
-                    EmployeeID = bestPerformersDTO.EmployeeID,
-                    Frequency = bestPerformersDTO.Frequency,
-                    ClientID = bestPerformersDTO.ClientID,
-                    ProjectID = bestPerformersDTO.ProjectID
-                };
+                //Id = bestPerformersDTO.Id,
+                EmployeeID = bestPerformersDTO.EmployeeID,
+                Frequency = bestPerformersDTO.Frequency,
+                ClientID = bestPerformersDTO.ClientID,
+                ProjectID = bestPerformersDTO.ProjectID
+            };
 
-                var updatedBestPerformer = await _repository.Update(bestPerformer);
-                return MapToDTO(updatedBestPerformer);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while updating the best performer.");
-                return null; // Handle the response according to your application's needs.
-            }
+            var updatedBestPerformer = await _repository.Update(bestPerformer);
+            return MapToDTO(updatedBestPerformer);
         }
 
         // Delete a Best Performer by ID asynchronously
         public async Task<bool> Delete(string id)
         {
-            try
-            {
-                return await _repository.Delete(id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"An error occurred while deleting the best performer with id: {id}.");
-                return false; // Indicate failure or handle accordingly.
-            }
+            return await _repository.Delete(id);
         }
 
         // Helper method to map from BestPerformers to BestPerformersDTO

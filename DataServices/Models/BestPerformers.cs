@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace DataServices.Models
 {
@@ -11,7 +14,6 @@ namespace DataServices.Models
         public Client? Client { get; set; }
         public Project? Project { get; set; }
     }
-
     public class BestPerformersDTO : AuditData
     {
         [Key]
@@ -19,18 +21,19 @@ namespace DataServices.Models
 
         [Required(ErrorMessage = "Employee ID is required.")]
         [MaxLength(36, ErrorMessage = "Employee ID cannot exceed 36 characters.")]
-        public string EmployeeID { get; set; } = string.Empty; // Make non-nullable if required
+        public string? EmployeeID { get; set; }
 
         [Required(ErrorMessage = "Frequency is required.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Frequency must be greater than 0.")]
-        public int Frequency { get; set; } // Change to int if it is numeric
+        [MaxLength(50, ErrorMessage = "Frequency cannot exceed 50 characters.")]
+        public string Frequency { get; set; }
 
         [Required(ErrorMessage = "Client ID is required.")]
         [MaxLength(36, ErrorMessage = "Client ID cannot exceed 36 characters.")]
-        public string ClientID { get; set; } = string.Empty; // Make non-nullable if required
+        public string? ClientID { get; set; }
 
         [Required(ErrorMessage = "Project ID is required.")]
         [MaxLength(36, ErrorMessage = "Project ID cannot exceed 36 characters.")]
-        public string ProjectID { get; set; } = string.Empty; // Make non-nullable if required
+        public string? ProjectID { get; set; }
+
     }
 }

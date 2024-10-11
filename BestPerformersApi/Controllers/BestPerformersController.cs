@@ -61,6 +61,12 @@ namespace BestPerformersAPI.Controllers
                 return BadRequest(ModelState); // Return the validation errors
             }
 
+            if (bestPerformersDTO == null)
+            {
+                _logger.LogWarning("Attempt to add null BestPerformersDTO");
+                return BadRequest("BestPerformersDTO cannot be null.");
+            }
+
             _logger.LogInformation("Adding a new best performer");
             var createdBestPerformer = await _bestPerformersServices.Add(bestPerformersDTO);
 
@@ -71,12 +77,18 @@ namespace BestPerformersAPI.Controllers
         // PUT: api/bestperformers/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
-        public async Task<ActionResult<BestPerformersDTO>> Update(string id, [FromBody] BestPerformersDTO bestPerformersDTO)
+        public async Task<ActionResult<BestPerformersDTO>> Update([FromBody] BestPerformersDTO bestPerformersDTO)
         {
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid model state for BestPerformersDTO");
                 return BadRequest(ModelState); // Return the validation errors
+            }
+
+            if (bestPerformersDTO == null)
+            {
+                _logger.LogWarning("Attempt to update with null BestPerformersDTO");
+                return BadRequest("BestPerformersDTO cannot be null.");
             }
 
             _logger.LogInformation("Updating best performer with ID {Id}", bestPerformersDTO.Id);
