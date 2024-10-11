@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "POCAPI", "POCAPI\POCAPI.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NewLeadApi", "NewLeadEnquiry\NewLeadApi.csproj", "{C970AF04-14F2-4F87-B198-65764AF78932}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BestPerformersApi", "BestPerformersApi\BestPerformersApi.csproj", "{B968BF62-BC6A-4A76-9563-514DB35B702E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{C970AF04-14F2-4F87-B198-65764AF78932}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C970AF04-14F2-4F87-B198-65764AF78932}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C970AF04-14F2-4F87-B198-65764AF78932}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B968BF62-BC6A-4A76-9563-514DB35B702E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B968BF62-BC6A-4A76-9563-514DB35B702E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B968BF62-BC6A-4A76-9563-514DB35B702E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B968BF62-BC6A-4A76-9563-514DB35B702E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
