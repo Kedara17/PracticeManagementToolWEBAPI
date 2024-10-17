@@ -1,39 +1,130 @@
-﻿using DataServices.Models;
+﻿using DataServices.Data;
+using DataServices.Models;
 using DataServices.Repositories;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
+using System.Net.NetworkInformation;
 
 namespace BestPerformersAPI.Services
 {
     public class BestPerformersService : IBestPerformersService
     {
         private readonly IRepository<BestPerformers> _repository;
-        private readonly ILogger<BestPerformersService> _logger;
+        private readonly DataBaseContext _context;
 
-        public BestPerformersService(IRepository<BestPerformers> repository, ILogger<BestPerformersService> logger)
+        public BestPerformersService(IRepository<BestPerformers> repository, DataBaseContext context)
         {
             _repository = repository;
-            _logger = logger;
-        }
-        // Fetch all Best Performers asynchronously
-        public async Task<IEnumerable<BestPerformersDTO>> GetAll()
-        {
-            var bestPerformers = await _repository.GetAll();
-            return MapToDTO(bestPerformers);
+            _context = context;
         }
 
-        // Fetch a single Best Performer by ID asynchronously
+        public async Task<IEnumerable<BestPerformersDTO>> GetAll()
+        {
+            var bestperformers = await _context.TblBestPerformers
+                .Include(e => e.Employee)
+                .Include(e => e.Client)
+                .Include(e => e.Project)
+                .ToListAsync();
+
+            var bestperformersDtos = new List<BestPerformersDTO>();
+
+            foreach (var bestperformer in bestperformers)
+            {
+                bestperformersDtos.Add(new BestPerformersDTO
+                {
+                    Id = bestperformer.Id,
+                    EmployeeID = bestperformer.Employee?.Name,
+                    Frequency = bestperformer.Frequency,
+                    ClientID = bestperformer.Client?.Name,
+                    ProjectID = bestperformer.Project?.ProjectName,
+                    IsActive = bestperformer.IsActive,
+                    CreatedBy = bestperformer.CreatedBy,
+                    CreatedDate = bestperformer.CreatedDate,
+                    UpdatedBy = bestperformer.UpdatedBy,
+                    UpdatedDate = bestperformer.UpdatedDate
+                });
+            }
+
+            return bestperformersDtos;
+        }
+
+
         public async Task<BestPerformersDTO> Get(string id)
         {
-            var bestPerformer = await _repository.Get(id);
-            if (bestPerformer == null)
-            {
-                _logger.LogWarning($"Best performer with id: {id} was not found.");
+            var bestperformer = await _context.TblBestPerformers
+                .Include(e => e.Employee)
+                .Include(e => e.Client)
+                .Include(e => e.Project)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (bestperformer == null)
                 return null;
+
+            return new BestPerformersDTO
+            {
+                Id = bestperformer.Id,
+                EmployeeID = bestperformer.Employee?.Name,
+                Frequency = bestperformer.Frequency,
+                ClientID = bestperformer.Client?.Name,
+                ProjectID = bestperformer.Project?.ProjectName,
+                IsActive = bestperformer.IsActive,
+                CreatedBy = bestperformer.CreatedBy,
+                CreatedDate = bestperformer.CreatedDate,
+                UpdatedBy = bestperformer.UpdatedBy,
+                UpdatedDate = bestperformer.UpdatedDate
+            };
+        }
+
+        public async Task<BestPerformersDTO> Update(BestPerformersDTO bestPerformersDTO)
+        {
+            if (bestPerformersDTO == null)
+            {
+                throw new ArgumentNullException(nameof(bestPerformersDTO), "Input data is null");
             }
-            return MapToDTO(bestPerformer);
+
+            // Retrieve the existing entity from the database to ensure it exists
+            var existingEntity = await _context.TblBestPerformers
+                .FirstOrDefaultAsync(e => e.Id == bestPerformersDTO.Id);
+
+            if (existingEntity == null)
+            {
+                throw new ArgumentException($"BestPerformer with ID {bestPerformersDTO.Id} not found.");
+            }
+
+            // Update the fields of the existing entity based on the DTO
+            existingEntity.EmployeeID = bestPerformersDTO.EmployeeID;
+            existingEntity.Frequency = bestPerformersDTO.Frequency;
+            existingEntity.ClientID = bestPerformersDTO.ClientID;
+            existingEntity.ProjectID = bestPerformersDTO.ProjectID;
+            existingEntity.UpdatedBy = bestPerformersDTO.UpdatedBy;
+            existingEntity.UpdatedDate = DateTime.UtcNow;  // Update timestamp or other fields if needed
+
+            try
+            {
+                // Call the repository to perform the update
+                await _repository.Update(existingEntity);
+
+                // Return the updated DTO after successful update
+                return bestPerformersDTO;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                // Handle concurrency issues (e.g., retry logic or informing the user)
+                throw new InvalidOperationException("Concurrency conflict occurred. The record may have been modified by another user.", ex);
+            }
+
+        }
+        public async Task<bool> Delete(string id)
+        {
+            // Check if the BestPerformers exists
+            var existingData = await _repository.Get(id);
+            if (existingData == null)
+            {
+                throw new ArgumentException($"BestPerformers with ID {id} not found.");
+            }
+            existingData.IsActive = false; // Soft delete
+            await _repository.Update(existingData); // Save changes
+            return true;
         }
 
         // Add a new Best Performer asynchronously
@@ -41,7 +132,6 @@ namespace BestPerformersAPI.Services
         {
             if (bestPerformersDTO == null)
             {
-                _logger.LogWarning("Attempted to add a null BestPerformersDTO.");
                 return null;
             }
 
@@ -57,33 +147,6 @@ namespace BestPerformersAPI.Services
             return MapToDTO(createdBestPerformer);
         }
 
-        // Update an existing Best Performer asynchronously
-        public async Task<BestPerformersDTO> Update(BestPerformersDTO bestPerformersDTO)
-        {
-            if (bestPerformersDTO == null)
-            {
-                _logger.LogWarning("Attempted to update a null BestPerformersDTO.");
-                return null;
-            }
-
-            var bestPerformer = new BestPerformers
-            {
-                //Id = bestPerformersDTO.Id,
-                EmployeeID = bestPerformersDTO.EmployeeID,
-                Frequency = bestPerformersDTO.Frequency,
-                ClientID = bestPerformersDTO.ClientID,
-                ProjectID = bestPerformersDTO.ProjectID
-            };
-
-            var updatedBestPerformer = await _repository.Update(bestPerformer);
-            return MapToDTO(updatedBestPerformer);
-        }
-
-        // Delete a Best Performer by ID asynchronously
-        public async Task<bool> Delete(string id)
-        {
-            return await _repository.Delete(id);
-        }
 
         // Helper method to map from BestPerformers to BestPerformersDTO
         private BestPerformersDTO MapToDTO(BestPerformers bestPerformer)

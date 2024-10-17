@@ -16,8 +16,8 @@ namespace DataServices.Models
     }
     public class BestPerformersDTO : AuditData
     {
-        [Key]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+     //   [Key]
+        //public string Id { get; set; } = Guid.NewGuid().ToString();
 
         [Required(ErrorMessage = "Employee ID is required.")]
         [MaxLength(36, ErrorMessage = "Employee ID cannot exceed 36 characters.")]
