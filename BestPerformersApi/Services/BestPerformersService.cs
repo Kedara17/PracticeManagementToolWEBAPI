@@ -75,6 +75,25 @@ namespace BestPerformersAPI.Services
             };
         }
 
+        // Add a new Best Performer asynchronously
+        public async Task<BestPerformersDTO> Add(BestPerformersDTO bestPerformersDTO)
+        {
+            if (bestPerformersDTO == null)
+            {
+                return null;
+            }
+
+            var bestPerformer = new BestPerformers
+            {
+                EmployeeID = bestPerformersDTO.EmployeeID,
+                Frequency = bestPerformersDTO.Frequency,
+                ClientID = bestPerformersDTO.ClientID,
+                ProjectID = bestPerformersDTO.ProjectID
+            };
+
+            var createdBestPerformer = await _repository.Create(bestPerformer);
+            return MapToDTO(createdBestPerformer);
+        }
         public async Task<BestPerformersDTO> Update(BestPerformersDTO bestPerformersDTO)
         {
             if (bestPerformersDTO == null)
@@ -126,27 +145,6 @@ namespace BestPerformersAPI.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
-
-        // Add a new Best Performer asynchronously
-        public async Task<BestPerformersDTO> Add(BestPerformersDTO bestPerformersDTO)
-        {
-            if (bestPerformersDTO == null)
-            {
-                return null;
-            }
-
-            var bestPerformer = new BestPerformers
-            {
-                EmployeeID = bestPerformersDTO.EmployeeID,
-                Frequency = bestPerformersDTO.Frequency,
-                ClientID = bestPerformersDTO.ClientID,
-                ProjectID = bestPerformersDTO.ProjectID
-            };
-
-            var createdBestPerformer = await _repository.Create(bestPerformer);
-            return MapToDTO(createdBestPerformer);
-        }
-
 
         // Helper method to map from BestPerformers to BestPerformersDTO
         private BestPerformersDTO MapToDTO(BestPerformers bestPerformer)

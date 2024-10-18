@@ -25,7 +25,7 @@ namespace DataServices.Models
 
         [Required(ErrorMessage = "Frequency is required.")]
         [MaxLength(50, ErrorMessage = "Frequency cannot exceed 50 characters.")]
-        public string Frequency { get; set; }
+        public string? Frequency { get; set; }
 
         [Required(ErrorMessage = "Client ID is required.")]
         [MaxLength(36, ErrorMessage = "Client ID cannot exceed 36 characters.")]
