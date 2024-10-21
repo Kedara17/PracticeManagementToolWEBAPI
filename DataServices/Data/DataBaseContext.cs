@@ -13,7 +13,7 @@ namespace DataServices.Data
         public DataBaseContext(DbContextOptions<DataBaseContext> options) : base(options)
         {
         }
-
+        public DbSet<Certifications> TblCertifications { get; set; }
         public DbSet<Employee> TblEmployee { get; set; }
         public DbSet<Role> TblRole { get; set; }
         public DbSet<Blogs> TblBlogs { get; set; }        
@@ -287,6 +287,12 @@ namespace DataServices.Data
                 .HasOne(f => f.NewLeadEnquiry)
                 .WithMany(f => f.NewLeadEnquiryDocuments)
                 .HasForeignKey(f => f.NewLeadEnquiryID);
+
+            //----------Certifications table------------------------------------
+            modelBuilder.Entity<Certifications>()
+                                    .HasOne(pt => pt.Employee)
+                                    .WithMany(c => c.Certifications)
+                                    .HasForeignKey(pt => pt.EmployeeId);
         }
 
     }
