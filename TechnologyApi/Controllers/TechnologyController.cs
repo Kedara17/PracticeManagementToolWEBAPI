@@ -89,7 +89,7 @@ namespace TechnologyApi.Controllers
 
             try
             {
-                var technologyDto = new TechnologyDTO { Name = createDto.Name, Department = createDto.DepartmentId };
+                var technologyDto = new TechnologyDTO { Name = createDto.Name, Department = createDto.Department };
                 var createdTechnology = await _technologyService.Add(technologyDto);
                 return CreatedAtAction(nameof(GetTechnology), new { id = createdTechnology.Id }, createdTechnology);
             }
@@ -126,7 +126,7 @@ namespace TechnologyApi.Controllers
 
             try
             {
-                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.DepartmentId };
+                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department };
                 await _technologyService.Update(technologyDto);
             }
             catch (KeyNotFoundException ex)

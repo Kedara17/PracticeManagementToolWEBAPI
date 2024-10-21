@@ -34,7 +34,7 @@ namespace DataServices.Models
         [StringLength(50)]
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
-        public string? DepartmentId { get; set; }
+        public string? Department { get; set; }
     }
     public class TechnologyCreateDTO : TechnologyBaseDTO
     {
