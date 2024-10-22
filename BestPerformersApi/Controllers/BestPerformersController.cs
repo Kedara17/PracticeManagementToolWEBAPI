@@ -23,7 +23,7 @@ namespace BestPerformersAPI.Controllers
 
         // GET: api/bestperformers
         [HttpGet]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<BestPerformersDTO>>> GetAll()
         {
             _logger.LogInformation("Fetching all best performers");
@@ -35,7 +35,7 @@ namespace BestPerformersAPI.Controllers
 
         // GET: api/bestperformers/{id}
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BestPerformersDTO>> Get(string id)
         {
             _logger.LogInformation("Fetching best performer with ID {Id}", id);
@@ -52,7 +52,7 @@ namespace BestPerformersAPI.Controllers
 
         // POST: api/bestperformers
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BestPerformersDTO>> Add([FromBody] BestPerformersDTO bestPerformersDTO)
         {
             if (!ModelState.IsValid)
@@ -76,7 +76,7 @@ namespace BestPerformersAPI.Controllers
 
         // PUT: api/bestperformers/{id}
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BestPerformersDTO>> Update([FromBody] BestPerformersDTO bestPerformersDTO)
         {
             if (!ModelState.IsValid)
