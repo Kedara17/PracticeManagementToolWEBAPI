@@ -94,7 +94,7 @@ namespace BestPerformersAPI.Services
             var createdBestPerformer = await _repository.Create(bestPerformer);
             return MapToDTO(createdBestPerformer);
         }
-        public async Task<BestPerformersDTO> Update(BestPerformersDTO bestPerformersDTO)
+        public async Task<BestPerformersDTO> Update(BestPerformersDTO bestPerformersDTO, string userRole)
         {
             if (bestPerformersDTO == null)
             {
@@ -108,6 +108,15 @@ namespace BestPerformersAPI.Services
             if (existingEntity == null)
             {
                 throw new ArgumentException($"BestPerformer with ID {bestPerformersDTO.Id} not found.");
+            }
+
+            // Check if the user is trying to reactivate the blog
+            if (existingEntity.IsActive == false && bestPerformersDTO.IsActive == true)
+            {
+                if (userRole != "Admin")
+                {
+                    throw new UnauthorizedAccessException("Only an admin can reactivate a blog.");
+                }
             }
 
             // Update the fields of the existing entity based on the DTO
