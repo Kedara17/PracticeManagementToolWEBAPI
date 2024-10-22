@@ -43,6 +43,9 @@ namespace DataServices.Data
         public DbSet<NewLeadEnquiryFollowup> TblNewLeadEnquireFollowup { get; set; }
         public DbSet<NewLeadEnquiryDocuments> TblNewLeadEnquiryDocuments { get; set; }
 
+        //
+        public DbSet<Trainings> TblTrainings { get; set; }
+        public DbSet<TrainingTeam> TblTrainingTeam { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
            
@@ -287,6 +290,26 @@ namespace DataServices.Data
                 .HasOne(f => f.NewLeadEnquiry)
                 .WithMany(f => f.NewLeadEnquiryDocuments)
                 .HasForeignKey(f => f.NewLeadEnquiryID);
+
+
+
+            //---------- Trainings table------------------------------------
+            modelBuilder.Entity<Trainings>()
+                                   .HasOne(pt => pt.Employee)
+                                   .WithMany(c => c.Trainings)
+                                   .HasForeignKey(pt => pt.EmployeeId);
+
+
+            modelBuilder.Entity<TrainingTeam>()
+              .HasOne(c => c.Trainings)
+              .WithMany(c => c.TrainingTeam)
+              .HasForeignKey(c => c.TrainingId);
+
+            modelBuilder.Entity<TrainingTeam>()
+                                   .HasOne(pt => pt.Employee)
+                                   .WithMany(c => c.TrainingTeam)
+                                   .HasForeignKey(pt => pt.EmployeeId);
+
         }
 
     }

@@ -45,6 +45,10 @@ namespace DataServices.Models
         public ICollection<NewLeadEnquiry> NewLeadEnquiry { get; set; }
         public ICollection<NewLeadEnquiryFollowup> NewLeadEnquiryFollowup { get; set; }
 
+
+        //
+        public ICollection<Trainings> Trainings { get; set; }
+        public ICollection<TrainingTeam> TrainingTeam { get; set; }
     }
     public class EmployeeProfileDTO 
     {
