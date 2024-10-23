@@ -26,7 +26,7 @@ namespace DataServices.Models
         public string Name { get; set; }
         public string? Department { get; set; }
     }
-    public class TechnologyBaseDTO
+    public class TechnologyCreateDTO
     {
         [Required]
         [MinLength(3)]
@@ -34,12 +34,9 @@ namespace DataServices.Models
         [StringLength(50)]
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
-        public string? DepartmentId { get; set; }
+        public string? Department { get; set; }
     }
-    public class TechnologyCreateDTO : TechnologyBaseDTO
-    {
-    }
-    public class TechnologyUpdateDTO : TechnologyBaseDTO
+    public class TechnologyUpdateDTO : TechnologyCreateDTO
     {
         public string Id { get; set; }
     }

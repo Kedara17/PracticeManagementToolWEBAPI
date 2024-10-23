@@ -2,6 +2,7 @@
 using DataServices.Models;
 using EmployeeApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -69,7 +70,7 @@ namespace EmployeeApi.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Director, Project Manager")]
-        public async Task<IActionResult> CreateEmployee([FromBody] EmployeeDTO employeeDto)
+        public async Task<IActionResult> CreateEmployee([FromBody] EmployeeCreateDTO createDto)
         {
             if (!ModelState.IsValid)
             {
@@ -81,6 +82,22 @@ namespace EmployeeApi.Controllers
 
             try
             {
+                var employeeDto = new EmployeeDTO {
+                    Name = createDto.Name,
+                    Designation = createDto.Designation,
+                    EmployeeID = createDto.EmployeeID,
+                    EmailId = createDto.EmailId,
+                    Department = createDto.Department,
+                    Technology = createDto.Technology,
+                    ReportingTo = createDto.ReportingTo,
+                    JoiningDate = createDto.JoiningDate,
+                    RelievingDate = createDto.RelievingDate,
+                    Projection = createDto.Projection,
+                    Password = createDto.Password,
+                    Profile = createDto.Profile,
+                    PhoneNo = createDto.PhoneNo,
+                    Role = createDto.Role
+                };
                 var createdEmployee = await _employeeService.Add(employeeDto);
                 return CreatedAtAction(nameof(Get), new { id = createdEmployee.Id }, createdEmployee);
             }
@@ -109,7 +126,7 @@ namespace EmployeeApi.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
-        public async Task<IActionResult> Update(string id, [FromBody] EmployeeDTO empDto)
+        public async Task<IActionResult> Update(string id, [FromBody] EmployeeUpdateDTO updateDto)
         {
             if (!ModelState.IsValid)
             {
@@ -117,7 +134,7 @@ namespace EmployeeApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != empDto.Id)
+            if (id != updateDto.Id)
             {
                 _logger.LogWarning("Employee id: {Id} does not match with the id in the request body", id);
                 return BadRequest("Employee ID mismatch.");
@@ -125,7 +142,25 @@ namespace EmployeeApi.Controllers
 
             try
             {
-                await _employeeService.Update(empDto);
+                var employeeDto = new EmployeeDTO
+                {
+                    Id = id,
+                    Name = updateDto.Name,
+                    Designation = updateDto.Designation,
+                    EmployeeID = updateDto.EmployeeID,
+                    EmailId = updateDto.EmailId,
+                    Department = updateDto.Department,
+                    Technology = updateDto.Technology,
+                    ReportingTo = updateDto.ReportingTo,
+                    JoiningDate = updateDto.JoiningDate,
+                    RelievingDate = updateDto.RelievingDate,
+                    Projection = updateDto.Projection,
+                    Password = updateDto.Password,
+                    Profile = updateDto.Profile,
+                    PhoneNo = updateDto.PhoneNo,
+                    Role = updateDto.Role
+                };
+                await _employeeService.Update(employeeDto);
             }
             catch (KeyNotFoundException ex)
             {
