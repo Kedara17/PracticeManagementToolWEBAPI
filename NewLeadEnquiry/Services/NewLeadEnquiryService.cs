@@ -18,7 +18,10 @@ namespace NewLeadApi.Services
 
         public async Task<IEnumerable<NewLeadEnquiryDTO>> GetAll()
         {
-            var enquiries = await _context.TblNewLeadEnquiry.ToListAsync();
+            var enquiries = await _context.TblNewLeadEnquiry
+            .Include(ne => ne.Employee)
+            .Include(ne => ne.AssignedEmployee)
+            .ToListAsync();
 
             var dto = enquiries.Select(enquiry => new NewLeadEnquiryDTO
             {
@@ -42,7 +45,10 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryDTO> Get(string id)
         {
-            var newLeadEnquiry = await _repository.Get(id);
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry
+            .Include(ne => ne.Employee)
+            .Include(ne => ne.AssignedEmployee)
+            .FirstOrDefaultAsync(ne => ne.Id == id);
 
             if (newLeadEnquiry == null) return null;
 
@@ -67,33 +73,48 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryDTO> Add(NewLeadEnquiryDTO dto)
         {
-            var newLeadEnquiry = new NewLeadEnquiry
+            var newLeadEnquiry = new NewLeadEnquiry();
+
+            var employeeId = await _context.TblEmployee
+              .FirstOrDefaultAsync(d => d.Id == dto.EmployeeID);
+            if (employeeId == null)
+                throw new KeyNotFoundException("Employee not found");
+
+            var assignTo = await _context.TblEmployee
+               .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
+            if (assignTo == null)
+                throw new KeyNotFoundException("AssignTo not found");
+
+            newLeadEnquiry.CompanyName = dto.CompanyName;
+            newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
+            newLeadEnquiry.RepresentativeDesignation = dto.RepresentativeDesignation;
+            newLeadEnquiry.Requirement = dto.Requirement;
+            newLeadEnquiry.EnquiryDate = dto.EnquiryDate;
+            newLeadEnquiry.EmployeeID = dto.EmployeeID;
+            newLeadEnquiry.AssignTo = dto.AssignTo;
+            newLeadEnquiry.Status = dto.Status;
+            newLeadEnquiry.Comments = dto.Comments;
+            newLeadEnquiry.IsActive = true; // Assuming new enquiries are active by default
+            newLeadEnquiry.CreatedBy = dto.CreatedBy;
+            newLeadEnquiry.CreatedDate = DateTime.UtcNow;
+            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
+            newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
+            newLeadEnquiry.Profile = dto.Profile;
+
+            // Set the Profile property if a file is uploaded
+            if (!string.IsNullOrEmpty(dto.Profile))
             {
-                CompanyName = dto.CompanyName,
-                CompanyRepresentative = dto.CompanyRepresentative,
-                RepresentativeDesignation = dto.RepresentativeDesignation,
-                Requirement = dto.Requirement,
-                EnquiryDate = dto.EnquiryDate,
-                EmployeeID = dto.EmployeeID,
-                AssignTo = dto.AssignTo,
-                Status = dto.Status,
-                Comments = dto.Comments,
-                IsActive = true, // Assuming new enquiries are active by default
-                CreatedBy = dto.CreatedBy,
-                CreatedDate = DateTime.UtcNow,
-                UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = DateTime.UtcNow,
-                Profile = dto.Profile
-            };
+                newLeadEnquiry.Profile = dto.Profile;
+            }
 
             _context.TblNewLeadEnquiry.Add(newLeadEnquiry);
             await _context.SaveChangesAsync();
             dto.Id = newLeadEnquiry.Id;
 
             // Handle technologies
-            if (dto.TechnologyID != null && dto.TechnologyID.Any())
+            if (dto.Technology != null && dto.Technology.Any())
             {
-                foreach (var technologyId in dto.TechnologyID)
+                foreach (var technologyId in dto.Technology)
                 {
                     var newLeadEnquiryTechnology = new NewLeadEnquiryTechnology
                     {
@@ -117,8 +138,7 @@ namespace NewLeadApi.Services
                 if (newLeadEnquiryProfile.Profile.Length > 0)
                 {
                     var file = newLeadEnquiryProfile.Profile;
-                    filePath = Path.GetFullPath($"C:\\Users\\mshaik5\\Desktop\\UploadProfiles\\{file.FileName}");
-
+                    filePath = Path.GetFullPath($"C:\\Users\\skolli5\\Desktop\\UpdatedProfiles\\{file.FileName}");
                     // Save the file
                     using (var stream = System.IO.File.Create(filePath))
                     {
@@ -156,41 +176,56 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryDTO> Update(NewLeadEnquiryDTO dto)
         {
-            var enquiry = await _context.TblNewLeadEnquiry.FindAsync(dto.Id);
-            if (enquiry == null)
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry.FindAsync(dto.Id);
+            if (newLeadEnquiry == null)
             {
                 throw new KeyNotFoundException($"Lead Enquiry not found for ID: {dto.Id}");
             }
 
-            enquiry.CompanyName = dto.CompanyName;
-            enquiry.CompanyRepresentative = dto.CompanyRepresentative;
-            enquiry.RepresentativeDesignation = dto.RepresentativeDesignation;
-            enquiry.Requirement = dto.Requirement;
-            enquiry.EnquiryDate = dto.EnquiryDate;
-            enquiry.Status = dto.Status;
-            enquiry.Comments = dto.Comments;
-            enquiry.IsActive = dto.IsActive;
-            enquiry.UpdatedBy = dto.UpdatedBy;
-            enquiry.UpdatedDate = DateTime.UtcNow;
+            var employeeId = await _context.TblEmployee.FindAsync(dto.EmployeeID);
+            if (employeeId == null)
+                throw new KeyNotFoundException("EmployeeID not found");
 
-            _context.Entry(enquiry).State = EntityState.Modified;
+            var assignTo = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
+            if (assignTo == null)
+                throw new KeyNotFoundException("AssignTo not found");
+
+            newLeadEnquiry.CompanyName = dto.CompanyName;
+            newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
+            newLeadEnquiry.RepresentativeDesignation = dto.RepresentativeDesignation;
+            newLeadEnquiry.Requirement = dto.Requirement;
+            newLeadEnquiry.EnquiryDate = dto.EnquiryDate;
+            newLeadEnquiry.Status = dto.Status;
+            newLeadEnquiry.Comments = dto.Comments;
+            newLeadEnquiry.IsActive = dto.IsActive;
+            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
+            newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
+
+            // Set the Profile property if a file is uploaded
+            if (!string.IsNullOrEmpty(dto.Profile))
+            {
+                newLeadEnquiry.Profile = dto.Profile;
+            }
+
+            _context.Entry(newLeadEnquiry).State = EntityState.Modified;
 
             // Update technologies
-            if (dto.TechnologyID != null && dto.TechnologyID.Any())
+            if (dto.Technology != null && dto.Technology.Any())
             {
                 // Remove old technologies
                 var existingTechnologies = await _context.TblNewLeadEnquiryTechnology
-                    .Where(ne =>ne.NewLeadEnquiryID == dto.Id)
+                    .Where(ne => ne.NewLeadEnquiryID == dto.Id)
                     .ToListAsync();
                 _context.TblNewLeadEnquiryTechnology.RemoveRange(existingTechnologies);
 
                 // Add new technologies
-                foreach (var technology in dto.TechnologyID)
+                foreach (var technologyId in dto.Technology)
                 {
                     var newLeadEnquiryTechnology = new NewLeadEnquiryTechnology
                     {
                         NewLeadEnquiryID = dto.Id,
-                        TechnologyID = technology.ToString(),
+                        TechnologyID = technologyId.ToString(),
                     };
                     await _context.TblNewLeadEnquiryTechnology.AddAsync(newLeadEnquiryTechnology);
                 }
@@ -203,15 +238,14 @@ namespace NewLeadApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            var enquiry = await _repository.Get(id);
-            if (enquiry == null)
+            var existingData = await _repository.Get(id);
+            if (existingData == null)
             {
                 throw new ArgumentException($"Lead Enquiry with ID {id} not found.");
             }
 
-            enquiry.IsActive = false; // Soft delete
-            await _repository.Update(enquiry);
-
+            existingData.IsActive = false; // Soft delete
+            await _repository.Update(existingData);
             return true;
         }
     }

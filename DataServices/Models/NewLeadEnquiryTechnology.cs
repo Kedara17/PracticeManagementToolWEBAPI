@@ -19,6 +19,6 @@ namespace DataServices.Models
     public class NewLeadEnquiryTechnologyDTO : AuditData
     {
         public string? NewLeadEnquiryID { get; set; }
-        public string[] TechnologyID { get; set; }
+        public string? TechnologyID { get; set; }
     }
 }
