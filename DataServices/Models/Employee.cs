@@ -57,6 +57,25 @@ namespace DataServices.Models
 
     public class EmployeeDTO : AuditData
     {
+        public string Name { get; set; }
+        public string? Designation { get; set; }
+        public string EmployeeID { get; set; }
+        public string EmailId { get; set; }
+        public string? Department { get; set; }
+        public string[] Technology {  get; set; } 
+        public string? ReportingTo { get; set; }
+        public DateTime? JoiningDate { get; set; }
+        public DateTime? RelievingDate { get; set; }
+        public string? Projection { get; set; }
+        public string? Password { get; set; }
+        public string? Profile { get; set; }
+        public string PhoneNo { get; set; }
+        public string? Role { get; set; }
+
+    }
+
+    public class EmployeeCreateDTO 
+    {
 
         [Required(ErrorMessage = "The Name field is required.")]
         [MinLength(3)]
@@ -65,7 +84,6 @@ namespace DataServices.Models
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
         [StringLength(36)]
-        [Required]
         public string? Designation { get; set; }
         [Required]
         [MinLength(4)]
@@ -77,13 +95,13 @@ namespace DataServices.Models
         [EmailAddress]
         [EmailDomain("miraclesoft.com", ErrorMessage = "Email must contain 'miraclesoft.com'.")]
         public string EmailId { get; set; }
-        [Required]
         public string? Department { get; set; }
-        public string[] Technology {  get; set; } 
+        public string[] Technology { get; set; }
         public string? ReportingTo { get; set; }
         public DateTime? JoiningDate { get; set; }
         public DateTime? RelievingDate { get; set; }
         public string? Projection { get; set; }
+        [Required]
         // Password Validation: minimum length of 8 characters with at least 1 uppercase, 1 lowercase, 1 digit, and 1 special character
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$", ErrorMessage = "Password must be at least 8 characters long and contain one uppercase letter, one lowercase letter, one number, and one special character.")]
         public string? Password { get; set; }
@@ -91,11 +109,16 @@ namespace DataServices.Models
         [Required]
         [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be 10 digits long.")]
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Phone number must be numeric.")]
-        [UniquePhoneNumber(ErrorMessage = "Phone number must be unique.")]
         public string PhoneNo { get; set; }
+        [Required]
         public string? Role { get; set; }
 
     }
+    public class EmployeeUpdateDTO : EmployeeCreateDTO
+    {
+        public string Id { get; set; }
+    }
+
     // Custom Email Domain Validation Attribute
     public class EmailDomainAttribute : ValidationAttribute
     {

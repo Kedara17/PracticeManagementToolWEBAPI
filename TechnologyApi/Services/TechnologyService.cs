@@ -113,12 +113,6 @@ namespace TechnologyApi.Services
         {
             var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
 
-            // Check if the technology name already exists
-            var existingTechnology = await _context.TblTechnology
-                .FirstOrDefaultAsync(t => t.Name == technologyDto.Name);
-            if (existingTechnology != null)
-                throw new ArgumentException("A technology with the same name already exists.");
-
             var technology = await _context.TblTechnology.FindAsync(technologyDto.Id);
 
             if (technology == null)
@@ -165,10 +159,6 @@ namespace TechnologyApi.Services
             existingData.IsActive = false; // Soft delete
             await _repository.Update(existingData); // Save changes
             return true;
-        }
-        public async Task<TechnologyDTO> GetByName(string name)
-        {
-            return await _context.TblTechnology.FirstOrDefaultAsync(d => d.Name == name);
         }
     }
 }

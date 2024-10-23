@@ -18,7 +18,7 @@ namespace DataServices.Models
     {
         public string Name { get; set; }        
     }
-    public class DepartmentBaseDTO
+    public class DepartmentCreateDTO
     {
         [Required(ErrorMessage = "The Name field is required.")]
         [MinLength(3)]
@@ -26,10 +26,7 @@ namespace DataServices.Models
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
     }
-    public class DepartmentCreateDTO : DepartmentBaseDTO
-    {
-    }
-    public class DepartmentUpdateDTO : DepartmentBaseDTO
+    public class DepartmentUpdateDTO : DepartmentCreateDTO
     {
         public string Id { get; set; }
     }

@@ -11,6 +11,5 @@ namespace TechnologyApi.Services
         Task<TechnologyDTO> Add(TechnologyDTO technology);
         Task<TechnologyDTO> Update(TechnologyDTO technology);
         Task<bool> Delete(string id);
-        public Task<TechnologyDTO> GetByName(string name);
     }
 }

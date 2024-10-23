@@ -252,27 +252,27 @@ namespace DataServices.Data
 
             //---------NewLeadEnquiry table---------------------------------
             modelBuilder.Entity<NewLeadEnquiry>()
-               .HasOne(nle => nle.Employee)
-               .WithMany(nle => nle.NewLeadEnquiry)
-               .HasForeignKey(nle => nle.EmployeeID);
+               .HasOne(ne => ne.Employee)
+               .WithMany(ne => ne.NewLeadEnquiry)
+               .HasForeignKey(ne => ne.EmployeeID);
 
             modelBuilder.Entity<NewLeadEnquiry>()
-                .HasOne(nle => nle.Employee)
-                .WithMany(nle => nle.NewLeadEnquiry)
-                .HasForeignKey(nle => nle.AssignTo);
+                .HasOne(ne => ne.Employee)
+                .WithMany(ne => ne.NewLeadEnquiry)
+                .HasForeignKey(ne => ne.AssignTo);
 
             //-------------NewLeadEnquiryTechnology table---------------------------
             modelBuilder.Entity<NewLeadEnquiryTechnology>()
-               .HasOne(t => t.Technology)
-               .WithMany(t => t.NewLeadEnquiryTechnology)
-               .HasForeignKey(nlt => nlt.TechnologyID);
+               .HasOne(ne => ne.Technology)
+               .WithMany(ne => ne.NewLeadEnquiryTechnology)
+               .HasForeignKey(ne => ne.TechnologyID);
 
             modelBuilder.Entity<NewLeadEnquiryTechnology>()
-              .HasOne(t => t.NewLeadEnquiry)
-              .WithMany(t => t.NewLeadEnquiryTechnology)
-              .HasForeignKey(t => t.NewLeadEnquiryID);
+              .HasOne(ne => ne.NewLeadEnquiry)
+              .WithMany(ne => ne.NewLeadEnquiryTechnology)
+              .HasForeignKey(ne => ne.NewLeadEnquiryID);
 
-            //--------------NewLeadEnquiryFollowup---------------------
+            //--------------NewLeadEnquiryFollowup table---------------------
             modelBuilder.Entity<NewLeadEnquiryFollowup>()
             .HasOne(f => f.NewLeadEnquiry)
             .WithMany(f => f.NewLeadEnquiryFollowup)
@@ -282,7 +282,7 @@ namespace DataServices.Data
                 .HasOne(f => f.Employee)
                 .WithMany(f => f.NewLeadEnquiryFollowup)
                 .HasForeignKey(f => f.AssignTo);
-
+                
             //---------- BestPerformers table------------------------------------
             modelBuilder.Entity<BestPerformers>()
                  .HasOne(pt => pt.Employee)  // Relationship with Employee
@@ -300,7 +300,7 @@ namespace DataServices.Data
                  .WithMany(c => c.BestPerformers)
                  .HasForeignKey(pt => pt.ProjectID)
                  .OnDelete(DeleteBehavior.SetNull);
-            //-------------- NewLeadEnquiryDocuments-----------------
+            //-------------- NewLeadEnquiryDocuments table-----------------
             modelBuilder.Entity<NewLeadEnquiryDocuments>()
                 .HasOne(f => f.NewLeadEnquiry)
                 .WithMany(f => f.NewLeadEnquiryDocuments)

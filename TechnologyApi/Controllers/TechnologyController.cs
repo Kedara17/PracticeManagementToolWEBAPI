@@ -77,19 +77,11 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Invalid model state for creating technology");
                 return BadRequest(ModelState);
             }
-
-            // Check if technology name is unique
-            var existingTechnology = await _technologyService.GetByName(createDto.Name);
-            if (existingTechnology != null)
-            {
-                _logger.LogWarning("Technology with name '{Name}' already exists", createDto.Name);
-                return BadRequest($"Technology with name '{createDto.Name}' already exists.");
-            }
             _logger.LogInformation("Creating a new technology");
 
             try
             {
-                var technologyDto = new TechnologyDTO { Name = createDto.Name, Department = createDto.DepartmentId };
+                var technologyDto = new TechnologyDTO { Name = createDto.Name, Department = createDto.Department };
                 var createdTechnology = await _technologyService.Add(technologyDto);
                 return CreatedAtAction(nameof(GetTechnology), new { id = createdTechnology.Id }, createdTechnology);
             }
@@ -114,19 +106,11 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Technology id mismatch");
                 return BadRequest("Technology ID mismatch");
             }
-            // Check if technology name is unique
-            var existingTechnology = await _technologyService.GetByName(updateDto.Name);
-            if (existingTechnology != null && existingTechnology.Id != id)
-            {
-                _logger.LogWarning("Technology with name '{Name}' already exists", updateDto.Name);
-                return BadRequest($"Technology with name '{updateDto.Name}' already exists.");
-            }
-
             _logger.LogInformation("Updating technology with id: {Id}", id);
 
             try
             {
-                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.DepartmentId };
+                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department };
                 await _technologyService.Update(technologyDto);
             }
             catch (KeyNotFoundException ex)

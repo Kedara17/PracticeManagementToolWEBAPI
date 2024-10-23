@@ -88,13 +88,6 @@ namespace DesignationApi.Services
 
         public async Task<DesignationDTO> Update(DesignationDTO _object)
         {
-            // Check if the Designation name already exists
-            var existingDesignation = await _context.TblDesignation
-                .FirstOrDefaultAsync(t => t.Name == _object.Name);
-
-            if (existingDesignation != null)
-                throw new ArgumentException("A designation with the same name already exists.");
-
             var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
             var designation = await _context.TblDesignation.FindAsync(_object.Id);
 
