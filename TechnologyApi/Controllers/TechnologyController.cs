@@ -106,11 +106,35 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Technology id mismatch");
                 return BadRequest("Technology ID mismatch");
             }
+
+            // Retrieve the technology by ID
+            var existingTechnology = await _technologyService.Get(id);
+
+            if (existingTechnology == null)
+            {
+                _logger.LogWarning("Technology with id: {Id} not found", id);
+                return NotFound();
+            }
+
+            // Only admins can reactivate inactive records
+            if (!existingTechnology.IsActive && !User.IsInRole("Admin"))
+            {
+                _logger.LogWarning("User without admin privileges attempted to reactivate technology with id: {Id}", id);
+                return Forbid();
+            }
+            // Check if technology name is unique
+            var technologyByName = await _technologyService.GetByName(updateDto.Name);
+            if (technologyByName != null && technologyByName.Id != id)
+            {
+                _logger.LogWarning("Technology with name '{Name}' already exists", updateDto.Name);
+                return BadRequest($"Technology with name '{updateDto.Name}' already exists.");
+            }
+
             _logger.LogInformation("Updating technology with id: {Id}", id);
 
             try
             {
-                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department };
+                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department, IsActive = updateDto.IsActive };
                 await _technologyService.Update(technologyDto);
             }
             catch (KeyNotFoundException ex)

@@ -12,16 +12,19 @@ namespace TechnologyApi.Services
         private readonly DataBaseContext _context;
         private readonly IRepository<Technology> _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<TechnologyService> _logger;
 
-        public TechnologyService(DataBaseContext context, IRepository<Technology> repository, IHttpContextAccessor httpContextAccessor)
+        public TechnologyService(DataBaseContext context, IRepository<Technology> repository, IHttpContextAccessor httpContextAccessor, ILogger<TechnologyService> logger)
         {
             _context = context;
             _repository = repository;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<TechnologyDTO>> GetAll()
         {
+            _logger.LogInformation("Fetching all Technologies");
             var technologies = await _context.TblTechnology.Include(t => t.Department).ToListAsync();
             var techDtos = new List<TechnologyDTO>();
 
@@ -45,6 +48,7 @@ namespace TechnologyApi.Services
 
         public async Task<TechnologyDTO> Get(string id)
         {
+            _logger.LogInformation("Fetching technology with id: {Id}", id);
             var technology = await _context.TblTechnology
                 .Include(t => t.Department)
                 .FirstOrDefaultAsync(t => t.Id == id);
@@ -67,6 +71,7 @@ namespace TechnologyApi.Services
 
         public async Task<TechnologyDTO> Add(TechnologyDTO technologyDto)
         {
+            _logger.LogInformation("Adding a new technology with name: {Name}", technologyDto.Name);
             var technology = new Technology();
             // Check if the technology name already exists
             var existingTechnology = await _context.TblTechnology
@@ -111,7 +116,14 @@ namespace TechnologyApi.Services
 
         public async Task<TechnologyDTO> Update(TechnologyDTO technologyDto)
         {
+            _logger.LogInformation("Updating technology with id: {Id}", technologyDto.Id);
             var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
+
+            //// Check if the technology name already exists
+            //var existingTechnology = await _context.TblTechnology
+            //    .FirstOrDefaultAsync(t => t.Name == technologyDto.Name);
+            //if (existingTechnology != null)
+            //    throw new ArgumentException("A technology with the same name already exists.");
 
             var technology = await _context.TblTechnology.FindAsync(technologyDto.Id);
 
@@ -140,6 +152,13 @@ namespace TechnologyApi.Services
             }
 
             technology.Name = technologyDto.Name;
+
+            // Update the IsActive state if it's modified by the admin
+            if (technology.IsActive != technologyDto.IsActive)
+            {
+                technology.IsActive = technologyDto.IsActive;
+                _logger.LogInformation("Department {Id} state changed to {IsActive}", technologyDto.Id, technologyDto.IsActive);
+            }
             technology.UpdatedBy = userName;
             technology.UpdatedDate = DateTime.Now;
 
@@ -151,6 +170,7 @@ namespace TechnologyApi.Services
 
         public async Task<bool> Delete(string id)
         {
+            _logger.LogInformation("Deleting technology with id: {Id}", id);
             var existingData = await _repository.Get(id);
             if (existingData == null)
             {
@@ -159,6 +179,11 @@ namespace TechnologyApi.Services
             existingData.IsActive = false; // Soft delete
             await _repository.Update(existingData); // Save changes
             return true;
+        }
+        public async Task<TechnologyDTO> GetByName(string name)
+        {
+            _logger.LogInformation("Fetching technology with name: {Name}", name);
+            return await _context.TblTechnology.FirstOrDefaultAsync(d => d.Name == name);
         }
     }
 }

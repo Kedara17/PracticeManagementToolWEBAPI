@@ -27,5 +27,6 @@ namespace DataServices.Models
     public class DesignationUpdateDTO : DesignationCreateDTO
     {
         public string Id { get; set; }
+        public bool IsActive { get; set; }
     }
 }
