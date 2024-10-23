@@ -14,6 +14,7 @@ namespace DataServices.Models
         public ICollection<SOW> SOWs { get; set; }
         public ICollection<Project> Project { get; set; }
         public ICollection<POC> POC { get; set; }
+        public ICollection<BestPerformers> BestPerformers { get; set; }
         [ForeignKey("SalesEmployee")]
         public Employee Employee { get; set; }
     }

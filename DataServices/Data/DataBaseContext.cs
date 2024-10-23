@@ -41,6 +41,7 @@ namespace DataServices.Data
         public DbSet<NewLeadEnquiry> TblNewLeadEnquiry { get; set; }
         public DbSet<NewLeadEnquiryTechnology> TblNewLeadEnquiryTechnology { get; set; }
         public DbSet<NewLeadEnquiryFollowup> TblNewLeadEnquireFollowup { get; set; }
+        public DbSet<BestPerformers> TblBestPerformers { get; set; }
         public DbSet<NewLeadEnquiryDocuments> TblNewLeadEnquiryDocuments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -281,7 +282,24 @@ namespace DataServices.Data
                 .HasOne(f => f.Employee)
                 .WithMany(f => f.NewLeadEnquiryFollowup)
                 .HasForeignKey(f => f.AssignTo);
+                
+            //---------- BestPerformers table------------------------------------
+            modelBuilder.Entity<BestPerformers>()
+                 .HasOne(pt => pt.Employee)  // Relationship with Employee
+                 .WithMany(c => c.BestPerformers)
+                 .HasForeignKey(pt => pt.EmployeeID);
 
+            modelBuilder.Entity<BestPerformers>()
+                 .HasOne(pt => pt.Client)  // Relationship with Client
+                 .WithMany(c => c.BestPerformers)
+                 .HasForeignKey(pt => pt.ClientID)
+                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<BestPerformers>()
+                 .HasOne(pt => pt.Project)  // Relationship with Project
+                 .WithMany(c => c.BestPerformers)
+                 .HasForeignKey(pt => pt.ProjectID)
+                 .OnDelete(DeleteBehavior.SetNull);
             //-------------- NewLeadEnquiryDocuments table-----------------
             modelBuilder.Entity<NewLeadEnquiryDocuments>()
                 .HasOne(f => f.NewLeadEnquiry)
