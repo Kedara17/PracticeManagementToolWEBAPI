@@ -25,7 +25,14 @@ namespace DataServices.Repositories
                                                      .FirstOrDefaultAsync(e => e.EmailId == emailId);
             return employee?.Roles?.RoleName; // Return the role name
         }
+        public async Task<string> GetEmployeeName(string emailId)
+        {
+            // Assuming TblEmployee has a property "Name" to store employee's name
+            var employee = await _dbContext.TblEmployee
+                .FirstOrDefaultAsync(e => e.EmailId == emailId);
 
+            return employee?.Name; // Return the employee's name
+        }
 
         public async Task<bool> Validate(string emailId, string password)
         {

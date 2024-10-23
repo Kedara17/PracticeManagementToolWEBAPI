@@ -10,16 +10,16 @@ namespace DataServices.Models
     public class SOWRequirementTechnology : SOWRequirementTechnologyDTO
     {
         public string? TechnologyId { get; set; }
-        public string? SOWId { get; set; }
-        [ForeignKey("SOWId")]
-        public SOW SOWs { get; set; }
+        public string? SOWRequirementId { get; set; }
+        [ForeignKey("SOWRequirementId")]
+        public SOWRequirement SOWRequirements { get; set; }
         [ForeignKey("TechnologyId")]
         public Technology Technology { get; set; }
     }
     public class SOWRequirementTechnologyDTO : AuditData
     {
         public string? Technology { get; set; }
-        public string? SOW { get;set; }
+        public string? SOWRequirementId { get; set; }
 
     }
 }

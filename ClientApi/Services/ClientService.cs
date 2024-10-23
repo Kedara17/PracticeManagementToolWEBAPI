@@ -76,6 +76,13 @@ namespace ClientApi.Services
 
         public async Task<ClientDTO> Add(ClientDTO _object)
         {
+            // Check if the Client name already exists
+            var existingClient = await _context.TblClient
+                .FirstOrDefaultAsync(t => t.Name == _object.Name);
+
+            if (existingClient != null)
+                throw new ArgumentException("A client with the same name already exists.");
+
             var salesEmployee = await _context.TblEmployee
                 .FirstOrDefaultAsync(d => d.Name == _object.SalesEmployee);
 
@@ -107,6 +114,12 @@ namespace ClientApi.Services
 
         public async Task<ClientDTO> Update(ClientDTO _object)
         {
+            // Check if the Client name already exists
+            var existingClient = await _context.TblClient
+                .FirstOrDefaultAsync(t => t.Name == _object.Name);
+
+            if (existingClient != null)
+                throw new ArgumentException("A client with the same name already exists.");
 
             var client = await _context.TblClient.FindAsync(_object.Id);
 

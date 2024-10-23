@@ -10,7 +10,7 @@ namespace DataServices.Repositories
     {
         public Task<bool> Validate(string username, string password);
         Task<string> GetUserRole(string emailId); // New method to get the user's role
-
+        Task<string> GetEmployeeName(string emailId);
     }
 }
 

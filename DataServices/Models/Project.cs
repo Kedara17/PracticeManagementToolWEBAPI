@@ -27,6 +27,11 @@ namespace DataServices.Models
     public class ProjectDTO : AuditData
     {
         public string Client { get; set; }
+        [Required(ErrorMessage = "The ProjectName field is required.")]
+        [MinLength(3)]
+        [MaxLength(50)]
+        [StringLength(50, ErrorMessage = "The ProjectName cannot exceed 50 characters.")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? ProjectName { get; set; }
         public string[] Technology { get; set; }
         public string? TechnicalProjectManager { get; set; }

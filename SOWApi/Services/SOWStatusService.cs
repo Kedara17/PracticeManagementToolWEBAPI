@@ -61,6 +61,13 @@ namespace SOWApi.Services
 
         public async Task<SOWStatusDTO> Add(SOWStatusDTO sowstatusDto)
         {
+            // Check if the Status already exists
+            var existingStatus = await _context.TblSOWStatus
+                .FirstOrDefaultAsync(t => t.Status == sowstatusDto.Status);
+
+            if (existingStatus != null)
+                throw new ArgumentException("A Status with the same name already exists.");
+
             var sowStatus = new SOWStatus
             {
                 Status = sowstatusDto.Status,
@@ -80,6 +87,13 @@ namespace SOWApi.Services
 
         public async Task<SOWStatusDTO> Update(SOWStatusDTO sowstatusDto)
         {
+            // Check if the Status already exists
+            var existingStatus = await _context.TblSOWStatus
+                .FirstOrDefaultAsync(t => t.Status == sowstatusDto.Status);
+
+            if (existingStatus != null)
+                throw new ArgumentException("A Status with the same name already exists.");
+
             var sowstatus = await _context.TblSOWStatus.FindAsync(sowstatusDto.Id);
 
             if (sowstatus == null)

@@ -2,6 +2,7 @@
 using DesignationApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DesignationApi.Controllers
@@ -20,7 +21,7 @@ namespace DesignationApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<DesignationDTO>>> GetAll()
         {
             _logger.LogInformation("Fetching all");
@@ -36,7 +37,7 @@ namespace DesignationApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DesignationDTO>> Get(string id)
         {
             _logger.LogInformation("Fetching with id: {Id}", id);
@@ -66,20 +67,28 @@ namespace DesignationApi.Controllers
 
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
-        public async Task<ActionResult<DesignationDTO>> Add([FromBody] DesignationDTO _object)
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<DesignationDTO>> Add([FromBody] DesignationCreateDTO createDto)
         {
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid model state for creating");
                 return BadRequest(ModelState);
             }
+            // Check if designation name is unique
+            var existingDesignation = await _Service.GetByName(createDto.Name);
+            if (existingDesignation != null)
+            {
+                _logger.LogWarning("Designation with name '{Name}' already exists", createDto.Name);
+                return BadRequest($"Designation with name '{createDto.Name}' already exists.");
+            }
 
-            _logger.LogInformation("Creating a new");
+            _logger.LogInformation("Creating a new Designation");
 
             try
             {
-                var created = await _Service.Add(_object);
+                var designationDto = new DesignationDTO { Name = createDto.Name };
+                var created = await _Service.Add(designationDto);
                 return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
             }
             catch (KeyNotFoundException ex)
@@ -91,8 +100,8 @@ namespace DesignationApi.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
-        public async Task<IActionResult> Update(string id, [FromBody] DesignationDTO _object)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(string id, [FromBody] DesignationUpdateDTO updateDto)
         {
             if (!ModelState.IsValid)
             {
@@ -100,15 +109,23 @@ namespace DesignationApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != _object.Id)
+            if (id != updateDto.Id)
             {
                 _logger.LogWarning("id: {Id} does not match with the id in the request body", id);
                 return BadRequest("ID mismatch.");
             }
+            // Check if the updated name is unique (excluding the current department)
+            var existingDepartment = await _Service.GetByName(updateDto.Name);
+            if (existingDepartment != null && existingDepartment.Id != id)
+            {
+                _logger.LogWarning("Designation with name '{Name}' already exists", updateDto.Name);
+                return BadRequest($"Designation with name '{updateDto.Name}' already exists.");
+            }
 
             try
             {
-                await _Service.Update(_object);
+                var designationDto = new DesignationDTO { Id = id, Name = updateDto.Name };
+                await _Service.Update(designationDto);
             }
             catch (KeyNotFoundException ex)
             {

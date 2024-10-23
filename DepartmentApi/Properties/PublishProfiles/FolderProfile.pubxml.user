@@ -6,7 +6,7 @@ https://go.microsoft.com/fwlink/?LinkID=208121.
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
     <_PublishTargetUrl>C:\inetpub\wwwroot\Publications\Department_API_Files</_PublishTargetUrl>
-    <History>False|2024-09-11T08:51:32.9697614Z;False|2024-09-10T23:05:11.6611007+05:30;</History>
+    <History>True|2024-10-10T17:33:04.5641962Z;True|2024-10-10T22:59:16.0903269+05:30;True|2024-10-10T22:46:54.2177702+05:30;True|2024-10-10T22:28:14.6643770+05:30;False|2024-10-10T22:25:54.3223062+05:30;False|2024-09-11T14:21:32.9697614+05:30;False|2024-09-10T23:05:11.6611007+05:30;</History>
     <LastFailureDetails />
   </PropertyGroup>
   <ItemGroup>

@@ -93,7 +93,7 @@ namespace SOWAPI.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Update(string id, [FromBody] SOWStatusDTO swoStatusDto)
         {
             if (!ModelState.IsValid)
@@ -129,7 +129,7 @@ namespace SOWAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             _logger.LogInformation("Deleting sowStatus with id: {Id}", id);

@@ -32,6 +32,8 @@ builder.Host
 builder.Services.AddDbContext<DataBaseContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("sqlcon")));
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IRepository<Designation>, DesignationRepository>();
 builder.Services.AddScoped<IDesignationService, DesignationService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

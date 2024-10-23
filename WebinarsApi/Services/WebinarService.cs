@@ -74,6 +74,13 @@ namespace WebinarsApi.Services
 
         public async Task<WebinarsDTO> Add(WebinarsDTO _object)
         {
+            // Check if the Webinar already exists
+            var existingWebinar = await _context.TblWebinars
+                .FirstOrDefaultAsync(t => t.Title == _object.Title);
+
+            if (existingWebinar != null)
+                throw new ArgumentException("A Webinar with the same name already exists.");
+
             var employee = await _context.TblEmployee
                .FirstOrDefaultAsync(d => d.Name == _object.Speaker);
 
@@ -104,6 +111,13 @@ namespace WebinarsApi.Services
 
         public async Task<WebinarsDTO> Update(WebinarsDTO _object)
         {
+            // Check if the Webinar already exists
+            var existingWebinar = await _context.TblWebinars
+                .FirstOrDefaultAsync(t => t.Title == _object.Title);
+
+            if (existingWebinar != null)
+                throw new ArgumentException("A Webinar with the same name already exists.");
+
             var webinars = await _context.TblWebinars.FindAsync(_object.Id);
 
             if (webinars == null)

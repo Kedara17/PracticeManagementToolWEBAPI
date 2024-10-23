@@ -19,7 +19,7 @@ namespace SOWApi.Services
         public async Task<IEnumerable<SOWRequirementTechnologyDTO>> GetAll()
         {
             var sowrequirements = await _context.TblSOWRequirementTechnology
-               .Include(c => c.SOWs)
+               .Include(c => c.SOWRequirements)
                .Include(t => t.Technology)
                .ToListAsync();
 
@@ -29,7 +29,7 @@ namespace SOWApi.Services
                 sowRequirementDto.Add(new SOWRequirementTechnologyDTO
                 {
                     Id = item.Id,
-                    SOW = item.SOWs?.Title,
+                    SOWRequirementId = item.SOWRequirements?.Id,
                     Technology = item.Technology?.Name,
                     IsActive = item.IsActive,
                     CreatedBy = item.CreatedBy,
@@ -44,7 +44,7 @@ namespace SOWApi.Services
         public async Task<SOWRequirementTechnologyDTO> Get(string id)
         {
             var sowRequirements = await _context.TblSOWRequirementTechnology
-                .Include(c => c.SOWs)
+                .Include(c => c.SOWRequirements)
                .Include(t => t.Technology)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -53,7 +53,7 @@ namespace SOWApi.Services
             return new SOWRequirementTechnologyDTO
             {
                 Id = sowRequirements.Id,
-                SOW = sowRequirements.SOWs?.Title,
+                SOWRequirementId = sowRequirements.SOWRequirements?.Id,
                 Technology = sowRequirements.Technology?.Name,
                 IsActive = sowRequirements.IsActive,
                 CreatedBy = sowRequirements.CreatedBy,
@@ -66,11 +66,11 @@ namespace SOWApi.Services
         public async Task<SOWRequirementTechnologyDTO> Add(SOWRequirementTechnologyDTO _object)
         {
 
-            var sow = await _context.TblSOW
-              .FirstOrDefaultAsync(d => d.Title == _object.SOW);
+            var sowReq = await _context.TblSOWRequirement
+              .FirstOrDefaultAsync(d => d.Id == _object.SOWRequirementId);
 
-            if (sow == null)
-                throw new KeyNotFoundException("Sow not found");
+            if (sowReq == null)
+                throw new KeyNotFoundException("SowReq not found");
 
             var technology = await _context.TblTechnology
                .FirstOrDefaultAsync(d => d.Name == _object.Technology);
@@ -79,9 +79,9 @@ namespace SOWApi.Services
                 throw new KeyNotFoundException("Technology not found");
 
 
-            var sowRequirement = new SOWRequirementTechnology
+            var sowRequirementTech = new SOWRequirementTechnology
             {
-                SOWId = sow?.Id,
+                SOWRequirementId = sowReq?.Id,
                 TechnologyId = technology?.Id,
                 IsActive = _object.IsActive,
                 CreatedBy = _object.CreatedBy,
@@ -90,10 +90,10 @@ namespace SOWApi.Services
                 UpdatedDate = _object.UpdatedDate
             };
 
-            _context.TblSOWRequirementTechnology.Add(sowRequirement);
+            _context.TblSOWRequirementTechnology.Add(sowRequirementTech);
             await _context.SaveChangesAsync();
 
-            _object.Id = sowRequirement.Id;
+            _object.Id = sowRequirementTech.Id;
             return _object;
         }
 
@@ -104,11 +104,11 @@ namespace SOWApi.Services
             if (sowRequirement == null)
                 throw new KeyNotFoundException("SOWRequirementTechnology not found");
 
-            var sow = await _context.TblSOW
-              .FirstOrDefaultAsync(d => d.Title == _object.SOW);
+            var sowReq = await _context.TblSOWRequirement
+              .FirstOrDefaultAsync(d => d.Id == _object.SOWRequirementId);
 
-            if (sow == null)
-                throw new KeyNotFoundException("Sow not found");
+            if (sowReq == null)
+                throw new KeyNotFoundException("SowReq not found");
 
             var technology = await _context.TblTechnology
                .FirstOrDefaultAsync(d => d.Name == _object.Technology);
@@ -116,7 +116,7 @@ namespace SOWApi.Services
             if (technology == null)
                 throw new KeyNotFoundException("Technology not found");
 
-            sowRequirement.SOWId = sow?.Id;
+            sowRequirement.SOWRequirementId = sowReq?.Id;
             sowRequirement.TechnologyId = technology?.Id;
             sowRequirement.IsActive = _object.IsActive;
             sowRequirement.CreatedBy = _object.CreatedBy;

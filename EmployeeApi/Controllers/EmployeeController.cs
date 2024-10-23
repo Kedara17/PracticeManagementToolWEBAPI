@@ -68,7 +68,7 @@ namespace EmployeeApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEmployee([FromBody] EmployeeDTO employeeDto)
         {
             if (!ModelState.IsValid)
@@ -92,7 +92,7 @@ namespace EmployeeApi.Controllers
         }
 
         [HttpPost("uploadFile")]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadFile(EmployeeProfileDTO employeeProfile)
         {
             try
@@ -108,7 +108,7 @@ namespace EmployeeApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(string id, [FromBody] EmployeeDTO empDto)
         {
             if (!ModelState.IsValid)

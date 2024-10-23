@@ -20,7 +20,7 @@ namespace SOWApi.Services
         public async Task<IEnumerable<SOWRequirementDTO>> GetAll()
         {
             var sowrequirements = await _context.TblSOWRequirement
-               .Include(c => c.SOWs)
+               .Include(c => c.SOW)
                .Include(t => t.Designation)
                .ToListAsync();
 
@@ -30,7 +30,7 @@ namespace SOWApi.Services
                 sowRequirementDto.Add(new SOWRequirementDTO
                 {
                     Id = item.Id,
-                    SOW = item.SOWs?.Title,
+                    SOW = item.SOW?.Title,
                     Designation = item.Designation?.Name,
                     TeamSize = item.TeamSize,
                     IsActive = item.IsActive,
@@ -46,7 +46,7 @@ namespace SOWApi.Services
         public async Task<SOWRequirementDTO> Get(string id)
         {
             var sowRequirements = await _context.TblSOWRequirement
-                .Include(c => c.SOWs)
+                .Include(c => c.SOW)
                .Include(t => t.Designation)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -55,7 +55,7 @@ namespace SOWApi.Services
             return new SOWRequirementDTO
             {
                 Id = sowRequirements.Id,
-                SOW = sowRequirements.SOWs?.Title,
+                SOW = sowRequirements.SOW?.Title,
                 Designation = sowRequirements.Designation?.Name,
                 TeamSize = sowRequirements.TeamSize,
                 IsActive = sowRequirements.IsActive,
@@ -83,7 +83,7 @@ namespace SOWApi.Services
                 throw new KeyNotFoundException("Designation not found");
 
 
-                sowRequirement.SOW = sow?.Id;
+            sowRequirement.SOWId = sow?.Id;
             sowRequirement.DesignationId = designation?.Id;
             sowRequirement.TeamSize = _object.TeamSize;
             sowRequirement.IsActive = _object.IsActive;
@@ -91,7 +91,7 @@ namespace SOWApi.Services
             sowRequirement.CreatedDate = _object.CreatedDate;
             sowRequirement.UpdatedBy = _object.UpdatedBy;
             sowRequirement.UpdatedDate = _object.UpdatedDate;
-            
+
 
             _context.TblSOWRequirement.Add(sowRequirement);
             await _context.SaveChangesAsync();
@@ -103,7 +103,7 @@ namespace SOWApi.Services
                 {
                     var sowRequirementTechnology = new SOWRequirementTechnology
                     {
-                        SOWId = sowRequirement.Id,
+                        SOWRequirementId = sowRequirement.Id,
                         TechnologyId = technologyId.ToString(),
                     };
 
@@ -134,7 +134,7 @@ namespace SOWApi.Services
             if (designation == null)
                 throw new KeyNotFoundException("Designation not found");
 
-            sowRequirement.SOW = sow?.Id;
+            sowRequirement.SOWId = sow?.Id;
             sowRequirement.DesignationId = designation?.Id;
             sowRequirement.TeamSize = _object.TeamSize;
             sowRequirement.IsActive = _object.IsActive;
@@ -149,7 +149,7 @@ namespace SOWApi.Services
             {
                 // Remove old technologies
                 var sowRequirementTechnologies = await _context.TblSOWRequirementTechnology
-                    .Where(et => et.SOWId == _object.Id)
+                    .Where(et => et.Id == _object.Id)
                     .ToListAsync();
                 _context.TblSOWRequirementTechnology.RemoveRange(sowRequirementTechnologies);
 
@@ -158,7 +158,7 @@ namespace SOWApi.Services
                 {
                     var sowRequirementTechnology = new SOWRequirementTechnology
                     {
-                        SOWId = sowRequirement.Id,
+                        SOWRequirementId = sowRequirement.Id,
                         TechnologyId = technologyId.ToString(),
                     };
 

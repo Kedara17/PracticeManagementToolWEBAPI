@@ -33,6 +33,8 @@ builder.Host
 builder.Services.AddDbContext<DataBaseContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("sqlcon")));
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IRepository<Department>, DepartmentRepository>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 

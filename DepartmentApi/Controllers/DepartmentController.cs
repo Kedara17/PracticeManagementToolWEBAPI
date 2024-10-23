@@ -21,7 +21,7 @@ namespace DepartmentApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<DepartmentDTO>>> GetAll()
         {
             _logger.LogInformation("Fetching all departments");
@@ -37,7 +37,7 @@ namespace DepartmentApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<DepartmentDTO>> Get(string id)
         {
             _logger.LogInformation("Fetching department with id: {Id}", id);
@@ -65,10 +65,9 @@ namespace DepartmentApi.Controllers
             }
         }
 
-
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
-        public async Task<ActionResult<DepartmentDTO>> Add([FromBody] DepartmentDTO _object)
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<DepartmentDTO>> Add([FromBody] DepartmentCreateDTO createDto)
         {
             if (!ModelState.IsValid)
             {
@@ -77,18 +76,19 @@ namespace DepartmentApi.Controllers
             }
 
             // Check if department name is unique
-            var existingDepartment = await _Service.GetByName(_object.Name);
+            var existingDepartment = await _Service.GetByName(createDto.Name);
             if (existingDepartment != null)
             {
-                _logger.LogWarning("Department with name '{Name}' already exists", _object.Name);
-                return BadRequest($"Department with name '{_object.Name}' already exists.");
+                _logger.LogWarning("Department with name '{Name}' already exists", createDto.Name);
+                return BadRequest($"Department with name '{createDto.Name}' already exists.");
             }
 
             _logger.LogInformation("Creating a new department");
 
             try
             {
-                var created = await _Service.Add(_object);
+                var departmentDto = new DepartmentDTO { Name = createDto.Name }; // Create a new DTO instance for the service
+                var created = await _Service.Add(departmentDto);
                 return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
             }
             catch (KeyNotFoundException ex)
@@ -98,10 +98,9 @@ namespace DepartmentApi.Controllers
             }
         }
 
-
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
-        public async Task<IActionResult> Update(string id, [FromBody] DepartmentDTO _object)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Update(string id, [FromBody] DepartmentUpdateDTO updateDto)
         {
             if (!ModelState.IsValid)
             {
@@ -109,23 +108,26 @@ namespace DepartmentApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != _object.Id)
+            // Check if the ID in the route matches the ID in the body
+            if (id != updateDto.Id)
             {
                 _logger.LogWarning("Department id: {Id} does not match with the id in the request body", id);
                 return BadRequest("ID mismatch.");
             }
 
             // Check if the updated name is unique (excluding the current department)
-            var existingDepartment = await _Service.GetByName(_object.Name);
-            if (existingDepartment != null && existingDepartment.Id != _object.Id)
+            var existingDepartment = await _Service.GetByName(updateDto.Name);
+            if (existingDepartment != null && existingDepartment.Id != id)
             {
-                _logger.LogWarning("Department with name '{Name}' already exists", _object.Name);
-                return BadRequest($"Department with name '{_object.Name}' already exists.");
+                _logger.LogWarning("Department with name '{Name}' already exists", updateDto.Name);
+                return BadRequest($"Department with name '{updateDto.Name}' already exists.");
             }
 
             try
             {
-                await _Service.Update(_object);
+                // Map the updateDto back to the original DepartmentDTO
+                var departmentDto = new DepartmentDTO { Id = id, Name = updateDto.Name };
+                await _Service.Update(departmentDto);
             }
             catch (KeyNotFoundException ex)
             {

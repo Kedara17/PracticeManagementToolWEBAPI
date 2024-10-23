@@ -77,6 +77,13 @@ namespace SOWApi.Services
 
         public async Task<SOWDTO> Add(SOWDTO _object)
         {
+            // Check if the SOW Title already exists
+            var existingSOW = await _context.TblSOW
+                .FirstOrDefaultAsync(t => t.Title == _object.Title);
+
+            if (existingSOW != null)
+                throw new ArgumentException("A Title with the same name already exists.");
+
             var client = await _context.TblClient
                .FirstOrDefaultAsync(d => d.Name == _object.Client);
 
@@ -122,6 +129,13 @@ namespace SOWApi.Services
 
         public async Task<SOWDTO> Update(SOWDTO _object)
         {
+            // Check if the SOW Title already exists
+            var existingSOW = await _context.TblSOW
+                .FirstOrDefaultAsync(t => t.Title == _object.Title);
+
+            if (existingSOW != null)
+                throw new ArgumentException("A Title with the same name already exists.");
+
             var sow = await _context.TblSOW.FindAsync(_object.Id);
 
             if (sow == null)

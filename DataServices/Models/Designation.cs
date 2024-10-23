@@ -9,16 +9,26 @@ namespace DataServices.Models
 {
     public class Designation : DesignationDTO
     {
-        
         public ICollection<Employee> Employee { get; set; }
         public ICollection<SOWRequirement> SOWRequirement { get; set; }
-
     }
-
     public class DesignationDTO : AuditData
     {
-        [Required]
-        [StringLength(50)]
         public string Name { get; set; }
+    }
+    public class DesignationBaseDTO
+    {
+        [Required(ErrorMessage = "The Name field is required.")]
+        [MinLength(3)]
+        [MaxLength(50)]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
+        public string Name { get; set; }
+    }
+    public class DesignationCreateDTO : DesignationBaseDTO
+    {
+    }
+    public class DesignationUpdateDTO : DesignationBaseDTO
+    {
+        public string Id { get; set; }
     }
 }

@@ -82,6 +82,13 @@ namespace ProjectApi.Services
 
         public async Task<ProjectDTO> Add(ProjectDTO projDto)
         {
+            // Check if the project name already exists
+            var existingProject = await _context.TblProject
+                .FirstOrDefaultAsync(t => t.ProjectName == projDto.ProjectName);
+
+            if (existingProject != null)
+                throw new ArgumentException("A project with the same name already exists.");
+
             var project = new Project();
 
             var client = await _context.TblClient
@@ -148,6 +155,13 @@ namespace ProjectApi.Services
 
         public async Task<ProjectDTO> Update(ProjectDTO projDto)
         {
+            // Check if the project name already exists
+            var existingProject = await _context.TblProject
+                .FirstOrDefaultAsync(t => t.ProjectName == projDto.ProjectName);
+
+            if (existingProject != null)
+                throw new ArgumentException("A project with the same name already exists.");
+
             var project = await _context.TblProject.FindAsync(projDto.Id);
 
             if (project == null)

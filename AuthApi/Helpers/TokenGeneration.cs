@@ -32,7 +32,8 @@ namespace AuthApi.Helpers
             if (isValidUser)
             {
                 string role = await _employeeLoginRepository.GetUserRole(emailId);
-                string token = GenerateToken(emailId, role); 
+                string employeeName = await _employeeLoginRepository.GetEmployeeName(emailId);
+                string token = GenerateToken(emailId, role, employeeName); 
                 authResponse = new AuthResponse
                 {
                     Token = token,
@@ -44,7 +45,7 @@ namespace AuthApi.Helpers
         }
 
 
-        private string GenerateToken(string emailId, string role)
+        private string GenerateToken(string emailId, string role, string employeeName)
         {
             try
             {
@@ -52,10 +53,11 @@ namespace AuthApi.Helpers
                 var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
                 var claims = new List<Claim>()
-        {
-            new Claim(ClaimTypes.Name, emailId),
-            new Claim(ClaimTypes.Role, role) // Add the user's role to the claims
-        };
+                {
+                    new Claim(ClaimTypes.Name, emailId),
+                    new Claim(ClaimTypes.Role, role), // Add the user's role to the claims
+                    new Claim("EmployeeName", employeeName) // Custom claim for employee name
+                };
 
                 var token = new JwtSecurityToken(
                     issuer: _config["Jwt:Issuer"],

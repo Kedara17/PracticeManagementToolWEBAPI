@@ -87,6 +87,42 @@ namespace EmployeeApi.Services
 
         public async Task<EmployeeDTO> Add(EmployeeDTO empDto)
         {
+            // Check if Employee name is unique
+            var existingEmployeeName = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.Name == empDto.Name);
+
+            if (existingEmployeeName != null)
+            {
+                throw new ArgumentException("Employee Name must be unique. This Employee Name is already in use.");
+            }
+
+            // Check if EmployeeID is unique
+            var existingEmployeeID = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.EmployeeID == empDto.EmployeeID);
+
+            if (existingEmployeeID != null)
+            {
+                throw new ArgumentException("EmployeeID must be unique. This EmployeeID is already in use.");
+            }
+
+            // Check if EmailId is unique
+            var existingEmailId = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.EmailId== empDto.EmailId);
+
+            if (existingEmailId != null)
+            {
+                throw new ArgumentException("EmailId must be unique. This EmailId is already in use.");
+            }
+
+            // Check if phone number is unique
+            var existingEmployeeWithSamePhoneNo = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.PhoneNo == empDto.PhoneNo);
+
+            if (existingEmployeeWithSamePhoneNo != null)
+            {
+                throw new ArgumentException("Phone number must be unique. This phone number is already in use.");
+            }
+
             var employee = new Employee();
             
             var department = await _context.TblDepartment
@@ -205,6 +241,41 @@ namespace EmployeeApi.Services
 
         public async Task<EmployeeDTO> Update(EmployeeDTO empDto)
         {
+            // Check if Employee name is unique
+            var existingEmployeeName = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.Name == empDto.Name);
+
+            if (existingEmployeeName != null)
+            {
+                throw new ArgumentException("Employee Name must be unique. This Employee Name is already in use.");
+            }
+
+            // Check if EmployeeID is unique
+            var existingEmployeeID = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.EmployeeID == empDto.EmployeeID);
+
+            if (existingEmployeeID != null)
+            {
+                throw new ArgumentException("EmployeeID must be unique. This EmployeeID is already in use.");
+            }
+
+            // Check if EmailId is unique
+            var existingEmailId = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.EmailId == empDto.EmailId);
+
+            if (existingEmailId != null)
+            {
+                throw new ArgumentException("EmailId must be unique. This EmailId is already in use.");
+            }
+
+            // Check if phone number is unique
+            var existingEmployeeWithSamePhoneNo = await _context.TblEmployee
+                .FirstOrDefaultAsync(e => e.PhoneNo == empDto.PhoneNo);
+
+            if (existingEmployeeWithSamePhoneNo != null)
+            {
+                throw new ArgumentException("Phone number must be unique. This phone number is already in use.");
+            }
             var employee = await _context.TblEmployee.FindAsync(empDto.Id);
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");

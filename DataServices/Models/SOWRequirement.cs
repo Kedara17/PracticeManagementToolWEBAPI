@@ -10,11 +10,13 @@ namespace DataServices.Models
 {
     public class SOWRequirement : SOWRequirementDTO
     {
+        public string? SOWId { get; set; }
         public string? DesignationId { get; set; }
         public ICollection<Interviews> Interviews { get; set; }
         public ICollection<SOWProposedTeam> SOWProposedTeam { get; set; }
-        [ForeignKey("SOW")]
-        public SOW SOWs { get; set; }
+        public ICollection<SOWRequirementTechnology> Technology { get; set; }
+        [ForeignKey("SOWId")]
+        public SOW SOW { get; set; }
         [ForeignKey("DesignationId")]
         public Designation Designation { get; set; }
 

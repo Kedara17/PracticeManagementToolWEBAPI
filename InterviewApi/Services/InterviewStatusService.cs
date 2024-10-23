@@ -58,6 +58,13 @@ namespace InterviewApi.Services
 
         public async Task<InterviewStatusDTO> Add(InterviewStatusDTO _object)
         {
+            // Check if the interview Status already exists
+            var existingStatus = await _context.TblInterviewStatus
+                .FirstOrDefaultAsync(t => t.Status == _object.Status);
+
+            if (existingStatus != null)
+                throw new ArgumentException("A InterviewStatus with the same name already exists.");
+
             var interviewStatus = new InterviewStatus
             {
                 Status = _object.Status,
@@ -77,6 +84,13 @@ namespace InterviewApi.Services
 
         public async Task<InterviewStatusDTO> Update(InterviewStatusDTO _object)
         {
+            // Check if the interview Status already exists
+            var existingStatus = await _context.TblInterviewStatus
+                .FirstOrDefaultAsync(t => t.Status == _object.Status);
+
+            if (existingStatus != null)
+                throw new ArgumentException("A InterviewStatus with the same name already exists.");
+
             var interviewStatus = await _context.TblInterviewStatus.FindAsync(_object.Id);
 
             if (interviewStatus == null)
