@@ -13,6 +13,7 @@ namespace DataServices.Models
         public ICollection<ClientContact> ClientContact { get; set; }
         public ICollection<SOW> SOWs { get; set; }
         public ICollection<Project> Project { get; set; }
+        public ICollection<SuccessStories> SuccessStories { get; set; }
         public ICollection<POC> POC { get; set; }
         [ForeignKey("SalesEmployee")]
         public Employee Employee { get; set; }
