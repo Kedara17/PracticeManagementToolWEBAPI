@@ -1,4 +1,5 @@
-﻿using DataServices.Models;
+﻿using DataServices.Data;
+using DataServices.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,41 +13,42 @@ namespace NewLeadApi.Controllers
     {
         private readonly INewLeadEnquiryService _service;
         private readonly ILogger<NewLeadEnquiryController> _logger;
-
-        public NewLeadEnquiryController(INewLeadEnquiryService service, ILogger<NewLeadEnquiryController> logger)
+        private readonly DataBaseContext _context;
+        public NewLeadEnquiryController(INewLeadEnquiryService service, ILogger<NewLeadEnquiryController> logger, DataBaseContext context)
         {
             _service = service;
             _logger = logger;
+            _context = context;
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
-        public async Task<ActionResult<IEnumerable<NewLeadEnquiry>>> GetAll()
+        public async Task<ActionResult<IEnumerable<NewLeadEnquiryDTO>>> GetAll()
         {
             _logger.LogInformation("Fetching all new lead enquiries");
-            var data = await _service.GetAll();
-            return Ok(data);
+            var newLeadEnquiries = await _service.GetAll();
+            return Ok(newLeadEnquiries);
         }
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
-        public async Task<ActionResult<NewLeadEnquiry>> Get(string id)
+        public async Task<ActionResult<NewLeadEnquiryDTO>> Get(string id)
         {
             _logger.LogInformation("Fetching new lead enquiry with id: {Id}", id);
-            var data = await _service.Get(id);
+            var newLeadEnquiry = await _service.Get(id);
 
-            if (data == null)
+            if (newLeadEnquiry == null)
             {
                 _logger.LogWarning("New lead enquiry with id: {Id} not found", id);
                 return NotFound();
             }
 
-            return Ok(data);
+            return Ok(newLeadEnquiry);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin, Director, Project Manager")]
-        public async Task<IActionResult> Add(NewLeadEnquiryDTO _object)
+        public async Task<IActionResult> Add(NewLeadEnquiryDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -57,7 +59,7 @@ namespace NewLeadApi.Controllers
             _logger.LogInformation("Creating a new lead enquiry");
             try
             {
-                var created = await _service.Add(_object);
+                var created = await _service.Add(dto);
                 return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
             }
             catch (KeyNotFoundException ex)
@@ -67,9 +69,26 @@ namespace NewLeadApi.Controllers
             }
         }
 
+        [HttpPost("uploadFile")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
+        public async Task<IActionResult> UploadFile(NewLeadEnquiryProfileDTO newLeadEnquiryProfile)
+        {
+            try
+            {
+                var filePath = await _service.UploadFileAsync(newLeadEnquiryProfile);
+                return Ok(new { message = "Your File is uploaded successfully.", path = filePath });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading file");
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
+
+
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
-        public async Task<IActionResult> Update(string id, [FromBody] NewLeadEnquiryDTO _object)
+        public async Task<IActionResult> Update(string id, [FromBody] NewLeadEnquiryDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -77,7 +96,7 @@ namespace NewLeadApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (id != _object.Id)
+            if (id != dto.Id)
             {
                 _logger.LogWarning("New lead enquiry id: {Id} does not match with the id in the request body", id);
                 return BadRequest("New lead enquiry ID mismatch.");
@@ -86,7 +105,7 @@ namespace NewLeadApi.Controllers
             _logger.LogInformation("Updating new lead enquiry with id: {Id}", id);
             try
             {
-                await _service.Update(_object);
+                await _service.Update(dto);
             }
             catch (KeyNotFoundException ex)
             {
@@ -100,26 +119,16 @@ namespace NewLeadApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Attempting to delete new lead enquiry with id: {Id}", id);
+            _logger.LogInformation("Deleting with id: {Id}", id);
+            var success = await _service.Delete(id);
 
-            try
+            if (!success)
             {
-                var success = await _service.Delete(id);
-
-                if (!success)
-                {
-                    _logger.LogWarning("New lead enquiry with id: {Id} not found", id);
-                    return NotFound(new { message = $"New lead enquiry with id {id} not found." });
-                }
-
-                _logger.LogInformation("Successfully deleted new lead enquiry with id: {Id}", id);
-                return Ok(new { message = $"New lead enquiry with id {id} deleted successfully." });
+                _logger.LogWarning("with id: {Id} not found", id);
+                return NotFound();
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while deleting new lead enquiry with id: {Id}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "An error occurred while deleting the new lead enquiry." });
-            }
+
+            return NoContent();
         }
     }
 }

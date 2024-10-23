@@ -2,88 +2,148 @@
 using DataServices.Models;
 using DataServices.Repositories;
 using Microsoft.EntityFrameworkCore;
+using NewLeadApi.Services;
 
-namespace NewLeadApi.Services
+namespace LeadEnquiryApi.Services
 {
     public class NewLeadEnquiryTechnologyService : INewLeadEnquiryTechnologyService
     {
-        private readonly IRepository<NewLeadEnquiryTechnology> _repository;
         private readonly DataBaseContext _context;
+        private readonly IRepository<NewLeadEnquiryTechnology> _repository;
 
-        public NewLeadEnquiryTechnologyService(IRepository<NewLeadEnquiryTechnology> repository, DataBaseContext context)
+        public NewLeadEnquiryTechnologyService(DataBaseContext context, IRepository<NewLeadEnquiryTechnology> repository)
         {
-            _repository = repository;
             _context = context;
+            _repository = repository;
         }
 
         public async Task<IEnumerable<NewLeadEnquiryTechnologyDTO>> GetAll()
         {
-            var technologies = await _repository.GetAll();
-            return technologies.Select(t => new NewLeadEnquiryTechnologyDTO
+            var enquiries = await _context.TblNewLeadEnquiryTechnology
+                .Include(ne => ne.NewLeadEnquiry)
+                .Include(ne => ne.Technology)
+                .ToListAsync();
+
+            var enquiryDtos = new List<NewLeadEnquiryTechnologyDTO>();
+
+            foreach (var ne in enquiries)
             {
-                TechnologyID = t.TechnologyID.ToString(),
-                IsActive = t.IsActive,
-                CreatedBy = t.CreatedBy,
-                CreatedDate = t.CreatedDate,
-                UpdatedBy = t.UpdatedBy,
-                UpdatedDate = t.UpdatedDate
-            });
+                enquiryDtos.Add(new NewLeadEnquiryTechnologyDTO()
+                {
+                    Id = ne.Id,
+                    NewLeadEnquiryID = ne.NewLeadEnquiry?.Id,
+                    TechnologyID = ne.Technology?.Name,
+                    IsActive = ne.IsActive,
+                    CreatedDate = DateTime.Now,
+                    CreatedBy = ne.CreatedBy,
+                    UpdatedDate = DateTime.Now,
+                    UpdatedBy = ne.UpdatedBy
+                });
+
+            }
+
+            return enquiryDtos;
         }
 
         public async Task<NewLeadEnquiryTechnologyDTO> Get(string id)
         {
-            var technology = await _repository.Get(id);
-            if (technology == null) return null;
+            var enquiryTechnology = await _context.TblNewLeadEnquiryTechnology
+                .Include(ne => ne.NewLeadEnquiryID)
+                .Include(ne => ne.TechnologyID)
+                .FirstOrDefaultAsync(ne => ne.Id == id);
+
+            if (enquiryTechnology == null) return null;
 
             return new NewLeadEnquiryTechnologyDTO
             {
-                TechnologyID = technology.TechnologyID.ToString(),
-                IsActive = technology.IsActive,
-                CreatedBy = technology.CreatedBy,
-                CreatedDate = technology.CreatedDate,
-                UpdatedBy = technology.UpdatedBy,
-                UpdatedDate = technology.UpdatedDate
+                NewLeadEnquiryID = enquiryTechnology.NewLeadEnquiryID,
+                TechnologyID = enquiryTechnology.TechnologyID,
+                IsActive = enquiryTechnology.IsActive,
+                CreatedBy = enquiryTechnology.CreatedBy,
+                CreatedDate = enquiryTechnology.CreatedDate,
+                UpdatedBy = enquiryTechnology.UpdatedBy,
+                UpdatedDate = enquiryTechnology.UpdatedDate
             };
         }
 
         public async Task<NewLeadEnquiryTechnologyDTO> Add(NewLeadEnquiryTechnologyDTO dto)
         {
-            var newTechnology = new NewLeadEnquiryTechnology
+
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry
+                .FirstOrDefaultAsync(ne => ne.Id == dto.NewLeadEnquiryID);
+            if (newLeadEnquiry == null)
+                throw new KeyNotFoundException("New Lead Enquiry not found");
+
+            var technology = await _context.TblTechnology
+                .FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
+            if (technology == null)
+                throw new KeyNotFoundException("Technology not found");
+
+            var newleadenquiryTechnology = new NewLeadEnquiryTechnology
             {
-                NewLeadEnquiryID = dto.NewLeadEnquiryID,  // Set the NewLeadEnquiryID
-                TechnologyID = dto.TechnologyID,
+                NewLeadEnquiryID = newLeadEnquiry.Id,
+                TechnologyID = technology.Id,
                 IsActive = dto.IsActive,
                 CreatedBy = dto.CreatedBy,
                 CreatedDate = dto.CreatedDate,
                 UpdatedBy = dto.UpdatedBy,
                 UpdatedDate = dto.UpdatedDate
             };
+            _context.TblNewLeadEnquiryTechnology.Add(newleadenquiryTechnology);
+            await _context.SaveChangesAsync();
 
-            await _repository.Create(newTechnology);
+            dto.Id = newleadenquiryTechnology.Id;           
             return dto;
         }
 
         public async Task<NewLeadEnquiryTechnologyDTO> Update(NewLeadEnquiryTechnologyDTO dto)
         {
-            var technology = await _repository.Get(dto.Id); // Use NewLeadEnquiryID for retrieval
-            if (technology == null) throw new KeyNotFoundException("Technology not found.");
+            // Find existing NewLeadEnquiryTechnology entry
+            var newleadenquiryTechnology = await _context.TblNewLeadEnquiryTechnology
+                .FirstOrDefaultAsync(ne => ne.NewLeadEnquiryID == dto.NewLeadEnquiryID && ne.TechnologyID == dto.TechnologyID);
 
-            technology.NewLeadEnquiryID = dto.NewLeadEnquiryID; // Update the foreign key
-            technology.TechnologyID = dto.TechnologyID;
-            technology.IsActive = dto.IsActive;
-            technology.CreatedBy = dto.CreatedBy;
-            technology.CreatedDate = dto.CreatedDate;
-            technology.UpdatedBy = dto.UpdatedBy;
-            technology.UpdatedDate = dto.UpdatedDate;
+            if (newleadenquiryTechnology == null)
+                throw new KeyNotFoundException("New Lead Enquiry Technology entry not found");
 
-            await _repository.Update(technology);
+            // Validate NewLeadEnquiry exists
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry
+                .FirstOrDefaultAsync(ne => ne.Id == dto.NewLeadEnquiryID);
+            if (newLeadEnquiry == null)
+                throw new KeyNotFoundException("New Lead Enquiry not found");
+
+            // Validate Technology exists
+            var technology = await _context.TblTechnology
+                .FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
+            if (technology == null)
+                throw new KeyNotFoundException("Technology not found");
+
+            // Update the NewLeadEnquiryTechnology properties
+            newleadenquiryTechnology.NewLeadEnquiryID = dto.NewLeadEnquiryID;
+            newleadenquiryTechnology.TechnologyID = dto.TechnologyID;
+            newleadenquiryTechnology.IsActive = dto.IsActive;
+            newleadenquiryTechnology.CreatedBy = dto.CreatedBy;
+            newleadenquiryTechnology.CreatedDate = dto.CreatedDate;
+            newleadenquiryTechnology.UpdatedBy = dto.UpdatedBy;
+            newleadenquiryTechnology.UpdatedDate = dto.UpdatedDate;
+
+            _context.Entry(newleadenquiryTechnology).State = EntityState.Modified;
+                     
+            // Save changes
+            await _context.SaveChangesAsync();
+
             return dto;
         }
 
-
         public async Task<bool> Delete(string id)
         {
-            return await _repository.Delete(id);
+            var existingData = await _repository.Get(id);
+            if(existingData == null)
+            {
+                throw new ArgumentException($"with ID {id} not found.");
+            }
+            existingData.IsActive = false; //Soft delete
+            await _repository.Update(existingData); // Save changes
+            return true;
         }
     }
 }
