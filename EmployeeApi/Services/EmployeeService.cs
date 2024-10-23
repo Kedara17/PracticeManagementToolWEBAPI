@@ -2,7 +2,6 @@
 using DataServices.Models;
 using DataServices.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace EmployeeApi.Services
 {
@@ -10,11 +9,13 @@ namespace EmployeeApi.Services
     {
         private readonly DataBaseContext _context;
         private readonly IRepository<Employee> _repository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EmployeeService(DataBaseContext context, IRepository<Employee> repository)
+        public EmployeeService(DataBaseContext context, IRepository<Employee> repository, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _repository = repository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<EmployeeDTO>> GetAll()
@@ -87,6 +88,8 @@ namespace EmployeeApi.Services
 
         public async Task<EmployeeDTO> Add(EmployeeDTO empDto)
         {
+            var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
+
             // Check if Employee name is unique
             var existingEmployeeName = await _context.TblEmployee
                 .FirstOrDefaultAsync(e => e.Name == empDto.Name);
@@ -124,68 +127,146 @@ namespace EmployeeApi.Services
             }
 
             var employee = new Employee();
-            
-            var department = await _context.TblDepartment
-               .FirstOrDefaultAsync(d => d.Name == empDto.Department);
-            if (department == null)
-                throw new KeyNotFoundException("Department not found");
+            //----------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Designation))
+            {
+                var designation = await _context.TblDesignation
+                    .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
+                if (designation == null)
+                {
+                    throw new ArgumentException($"Invalid designation. Please enter a valid designation.");
+                }
+                employee.DesignationId = designation.Id;
+            }
+            else
+            {
+                employee.DepartmentId = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Department))
+            {
+                var department = await _context.TblDepartment
+                    .FirstOrDefaultAsync(d => d.Name == empDto.Department);
+                if (department == null)
+                {
+                    throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
+                }
 
-            var designation = await _context.TblDesignation
-               .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
-            if (designation == null)
-                throw new KeyNotFoundException("Designation not found");
-
-            var reportingTo = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
-            if (reportingTo == null)
-                throw new KeyNotFoundException("ReportingTo not found");
-
-            var role = await _context.TblRole
-               .FirstOrDefaultAsync(r => r.RoleName == empDto.Role);
-            if (role == null)
-                throw new KeyNotFoundException("Role not found");
-
-            employee.Name = empDto.Name;
-            employee.DesignationId = designation.Id;
-            employee.EmployeeID = empDto.EmployeeID;
-            employee.EmailId = empDto.EmailId;
-            employee.DepartmentId = department.Id;
-            employee.ReportingTo = reportingTo.Id;
-            employee.JoiningDate = empDto.JoiningDate;
-            employee.RelievingDate = empDto.RelievingDate;
-            employee.Projection = empDto.Projection;
-            employee.IsActive = empDto.IsActive;
-            employee.CreatedBy = empDto.CreatedBy;
-            employee.CreatedDate = empDto.CreatedDate;
-            employee.UpdatedBy = empDto.UpdatedBy;
-            employee.UpdatedDate = empDto.UpdatedDate;
-            employee.Password = PasswordHasher.HashPassword(empDto.Password);
-            employee.Profile = empDto.Profile;
-            employee.PhoneNo = empDto.PhoneNo;
-            employee.Role = role.Id;
-
-            // Set the Profile property if a file is uploaded
-            if (!string.IsNullOrEmpty(empDto.Profile))
+                employee.DepartmentId = department.Id;
+            }
+            else
+            {
+                employee.DepartmentId = null;
+            }
+            //------------------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.ReportingTo))
+            {
+                var reportingTo = await _context.TblEmployee
+                    .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
+                if (reportingTo == null)
+                {
+                    throw new ArgumentException($"Invalid ReportingTo name. Please enter a valid ReportingTo name.");
+                }
+                employee.ReportingTo = reportingTo.Id;
+            }
+            else
+            {
+                employee.ReportingTo = null;
+            }
+            //---------------------------------------------------------
+            if (empDto.JoiningDate.HasValue)
+            {
+                employee.JoiningDate = empDto.JoiningDate;
+            }
+            else
+            {
+                employee.JoiningDate = null;
+            }
+            //---------------------------------------------------------
+            if (empDto.RelievingDate.HasValue)
+            {
+                employee.RelievingDate = empDto.RelievingDate;
+            }
+            else
+            {
+                employee.RelievingDate = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Projection))
+            {
+                employee.Projection = empDto.Projection;
+            }
+            else
+            {
+                employee.Projection = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Profile))
             {
                 employee.Profile = empDto.Profile;
             }
-
-
+            else
+            {
+                employee.Profile = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.PhoneNo))
+            {
+                employee.PhoneNo= empDto.PhoneNo;
+            }
+            else
+            {
+                employee.PhoneNo = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Role))
+            {
+                var role = await _context.TblRole
+                    .FirstOrDefaultAsync(d => d.RoleName == empDto.Role);
+                if (role == null)
+                {
+                    throw new ArgumentException($"Invalid Role. Please enter a valid Role.");
+                }
+                employee.Role = role.Id;
+            }
+            else
+            {
+                employee.ReportingTo = null;
+            }
+            //---------------------------------------------------------
+            employee.Name = empDto.Name;
+            employee.EmployeeID = empDto.EmployeeID;
+            employee.EmailId = empDto.EmailId;
+            employee.IsActive = true;
+            employee.CreatedBy = employeeName;
+            employee.CreatedDate = DateTime.Now;
+            employee.Password = PasswordHasher.HashPassword(empDto.Password);
             _context.TblEmployee.Add(employee);
             await _context.SaveChangesAsync();
+
             empDto.Id = employee.Id;
 
-            if (empDto.Technology != null && empDto.Technology.Any())
+            // If Technology is null or contains only empty strings, treat it as null
+            if (empDto.Technology == null || empDto.Technology.All(string.IsNullOrWhiteSpace))
+            {
+                empDto.Technology = null;
+                Console.WriteLine("empDto.Technology is set to null.");
+            }
+            else
             {
                 foreach (var technologyId in empDto.Technology)
                 {
-                    var employeeTechnology = new EmployeeTechnology
+                    // Ensure you're not processing empty or whitespace strings
+                    if (!string.IsNullOrWhiteSpace(technologyId))
                     {
-                        EmployeeID = employee.Id,
-                        Technology = technologyId.ToString(),
-                    };
+                        var employeeTechnology = new EmployeeTechnology
+                        {
+                            EmployeeID = employee.Id,
+                            Technology = technologyId.ToString(),
+                        };
 
-                    await _context.TblEmployeeTechnology.AddAsync(employeeTechnology);
+                        await _context.TblEmployeeTechnology.AddAsync(employeeTechnology);
+                    }
                 }
 
                 await _context.SaveChangesAsync();
@@ -241,83 +322,126 @@ namespace EmployeeApi.Services
 
         public async Task<EmployeeDTO> Update(EmployeeDTO empDto)
         {
-            // Check if Employee name is unique
-            var existingEmployeeName = await _context.TblEmployee
-                .FirstOrDefaultAsync(e => e.Name == empDto.Name);
-
-            if (existingEmployeeName != null)
-            {
-                throw new ArgumentException("Employee Name must be unique. This Employee Name is already in use.");
-            }
-
-            // Check if EmployeeID is unique
-            var existingEmployeeID = await _context.TblEmployee
-                .FirstOrDefaultAsync(e => e.EmployeeID == empDto.EmployeeID);
-
-            if (existingEmployeeID != null)
-            {
-                throw new ArgumentException("EmployeeID must be unique. This EmployeeID is already in use.");
-            }
-
-            // Check if EmailId is unique
-            var existingEmailId = await _context.TblEmployee
-                .FirstOrDefaultAsync(e => e.EmailId == empDto.EmailId);
-
-            if (existingEmailId != null)
-            {
-                throw new ArgumentException("EmailId must be unique. This EmailId is already in use.");
-            }
-
-            // Check if phone number is unique
-            var existingEmployeeWithSamePhoneNo = await _context.TblEmployee
-                .FirstOrDefaultAsync(e => e.PhoneNo == empDto.PhoneNo);
-
-            if (existingEmployeeWithSamePhoneNo != null)
-            {
-                throw new ArgumentException("Phone number must be unique. This phone number is already in use.");
-            }
+            var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
+            
             var employee = await _context.TblEmployee.FindAsync(empDto.Id);
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
-            var department = await _context.TblDepartment
-                .FirstOrDefaultAsync(d => d.Name == empDto.Department);
-            if (department == null)
-                throw new KeyNotFoundException("Department not found");
+            //----------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Designation))
+            {
+                var designation = await _context.TblDesignation
+                    .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
+                if (designation == null)
+                {
+                    throw new ArgumentException($"Invalid designation. Please enter a valid designation.");
+                }
+                employee.DesignationId = designation.Id;
+            }
+            else
+            {
+                employee.DepartmentId = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Department))
+            {
+                var department = await _context.TblDepartment
+                    .FirstOrDefaultAsync(d => d.Name == empDto.Department);
+                if (department == null)
+                {
+                    throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
+                }
 
-            var reportingTo = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
-            if (reportingTo == null)
-                throw new KeyNotFoundException("ReportingTo not found");
-
-            var designation = await _context.TblDesignation
-                .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
-            if (designation == null)
-                throw new KeyNotFoundException("Designation not found");
-
-            var role = await _context.TblRole
-               .FirstOrDefaultAsync(r => r.RoleName == empDto.Role);
-            if (role == null)
-                throw new KeyNotFoundException("Role not found");
-
+                employee.DepartmentId = department.Id;
+            }
+            else
+            {
+                employee.DepartmentId = null;
+            }
+            //------------------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.ReportingTo))
+            {
+                var reportingTo = await _context.TblEmployee
+                    .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
+                if (reportingTo == null)
+                {
+                    throw new ArgumentException($"Invalid ReportingTo name. Please enter a valid ReportingTo name.");
+                }
+                employee.ReportingTo = reportingTo.Id;
+            }
+            else
+            {
+                employee.ReportingTo = null;
+            }
+            //---------------------------------------------------------
+            if (empDto.JoiningDate.HasValue)
+            {
+                employee.JoiningDate = empDto.JoiningDate;
+            }
+            else
+            {
+                employee.JoiningDate = null;
+            }
+            //---------------------------------------------------------
+            if (empDto.RelievingDate.HasValue)
+            {
+                employee.RelievingDate = empDto.RelievingDate;
+            }
+            else
+            {
+                employee.RelievingDate = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Projection))
+            {
+                employee.Projection = empDto.Projection;
+            }
+            else
+            {
+                employee.Projection = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Profile))
+            {
+                employee.Profile = empDto.Profile;
+            }
+            else
+            {
+                employee.Profile = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.PhoneNo))
+            {
+                employee.PhoneNo = empDto.PhoneNo;
+            }
+            else
+            {
+                employee.PhoneNo = null;
+            }
+            //---------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(empDto.Role))
+            {
+                var role = await _context.TblRole
+                    .FirstOrDefaultAsync(d => d.RoleName == empDto.Role);
+                if (role == null)
+                {
+                    throw new ArgumentException($"Invalid Role. Please enter a valid Role.");
+                }
+                employee.Role = role.Id;
+            }
+            else
+            {
+                employee.ReportingTo = null;
+            }
+            //---------------------------------------------------------
             employee.Name = empDto.Name;
-            employee.DesignationId = designation.Id;
             employee.EmployeeID = empDto.EmployeeID;
             employee.EmailId = empDto.EmailId;
-            employee.DepartmentId = department.Id;
-            employee.ReportingTo = reportingTo.Id;
-            employee.JoiningDate = empDto.JoiningDate;
-            employee.RelievingDate = empDto.RelievingDate;
-            employee.Projection = empDto.Projection;
-            employee.IsActive = empDto.IsActive;
-            employee.CreatedBy = empDto.CreatedBy;
-            employee.CreatedDate = empDto.CreatedDate;
-            employee.UpdatedBy = empDto.UpdatedBy;
-            employee.UpdatedDate = empDto.UpdatedDate;
+            employee.IsActive = true;
+            employee.UpdatedBy = userName;
+            employee.UpdatedDate = DateTime.Now;
             employee.Password = PasswordHasher.HashPassword(empDto.Password);
-            employee.Profile = empDto.Profile;
-            employee.PhoneNo = empDto.PhoneNo;
-            employee.Role = role.Id;
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(empDto.Profile))
@@ -326,29 +450,33 @@ namespace EmployeeApi.Services
             }
 
 
-            _context.Entry(employee).State = EntityState.Modified;
+           // _context.Entry(employee).State = EntityState.Modified;
 
-            if (empDto.Technology != null && empDto.Technology.Any())
+            if (empDto.Technology == null || empDto.Technology.All(string.IsNullOrWhiteSpace))
             {
-                // Remove old technologies
-                var employeeTechnologies = await _context.TblEmployeeTechnology
-                    .Where(et => et.EmployeeID == empDto.Id)
-                    .ToListAsync();
-                _context.TblEmployeeTechnology.RemoveRange(employeeTechnologies);
-
-                // Add updated technologies
+                empDto.Technology = null;
+                Console.WriteLine("empDto.Technology is set to null.");
+            }
+            else
+            {
                 foreach (var technologyId in empDto.Technology)
                 {
-                    var employeeTechnology = new EmployeeTechnology
+                    // Ensure you're not processing empty or whitespace strings
+                    if (!string.IsNullOrWhiteSpace(technologyId))
                     {
-                        EmployeeID = employee.Id,
-                        Technology = technologyId.ToString(),
-                    };
+                        var employeeTechnology = new EmployeeTechnology
+                        {
+                            EmployeeID = employee.Id,
+                            Technology = technologyId.ToString(),
+                        };
 
-                    await _context.TblEmployeeTechnology.AddAsync(employeeTechnology);
+                        await _context.TblEmployeeTechnology.AddAsync(employeeTechnology);
+                    }
                 }
-            }
 
+                await _context.SaveChangesAsync();
+            }
+            _context.Entry(employee).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
             return empDto;

@@ -77,14 +77,6 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Invalid model state for creating technology");
                 return BadRequest(ModelState);
             }
-
-            // Check if technology name is unique
-            var existingTechnology = await _technologyService.GetByName(createDto.Name);
-            if (existingTechnology != null)
-            {
-                _logger.LogWarning("Technology with name '{Name}' already exists", createDto.Name);
-                return BadRequest($"Technology with name '{createDto.Name}' already exists.");
-            }
             _logger.LogInformation("Creating a new technology");
 
             try
@@ -114,14 +106,6 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Technology id mismatch");
                 return BadRequest("Technology ID mismatch");
             }
-            // Check if technology name is unique
-            var existingTechnology = await _technologyService.GetByName(updateDto.Name);
-            if (existingTechnology != null && existingTechnology.Id != id)
-            {
-                _logger.LogWarning("Technology with name '{Name}' already exists", updateDto.Name);
-                return BadRequest($"Technology with name '{updateDto.Name}' already exists.");
-            }
-
             _logger.LogInformation("Updating technology with id: {Id}", id);
 
             try
