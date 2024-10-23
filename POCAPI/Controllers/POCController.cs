@@ -40,9 +40,9 @@ namespace POCAPI.Controllers
         public async Task<ActionResult<POCDTO>> Get(string id)
         {
             _logger.LogInformation("Fetching with id: {Id}", id);
-            var blogs = await _Service.Get(id);
+            var pocs = await _Service.Get(id);
 
-            if (blogs == null)
+            if (pocs == null)
             {
                 _logger.LogWarning("with id: {Id} not found", id);
                 return NotFound();
@@ -51,11 +51,11 @@ namespace POCAPI.Controllers
             // Check if the logged-in user has the "Admin" role
             if (User.IsInRole("Admin"))
             {
-                return Ok(blogs); // Admin can see both active and inactive 
+                return Ok(pocs); // Admin can see both active and inactive 
             }
-            else if (blogs.IsActive)
+            else if (pocs.IsActive)
             {
-                return Ok(blogs); // Non-admins can only see active data
+                return Ok(pocs); // Non-admins can only see active data
             }
             else
             {
@@ -67,18 +67,18 @@ namespace POCAPI.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Director, Project Manager")]
-        public async Task<ActionResult<POCDTO>> Add([FromBody] POCDTO _object)
+        public async Task<ActionResult<POCDTO>> Add([FromBody] POCDTO pocDto)
         {
             if (!ModelState.IsValid)
             {
-                _logger.LogWarning("Invalid model state for creating blogs");
+                _logger.LogWarning("Invalid model state for creating pocs");
                 return BadRequest(ModelState);
             }
 
-            _logger.LogInformation("Creating a new Blogs");
+            _logger.LogInformation("Creating a new POC");
             try
             {
-                var created = await _Service.Add(_object);
+                var created = await _Service.Add(pocDto);
                 return CreatedAtAction(nameof(GetAll), new { id = created.Id }, created);
             }
             catch (KeyNotFoundException ex)
@@ -88,9 +88,24 @@ namespace POCAPI.Controllers
             }
         }
 
+        [HttpPost("uploadFile")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
+        public async Task<IActionResult> UploadFile(POCDocumentDTO pocDocument)
+        {
+            try
+            {
+                var filePath = await _Service.UploadFileAsync(pocDocument);
+                return Ok(new { message = "Your File is uploaded successfully.", path = filePath });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading file");
+                return StatusCode(500, "Internal server error: " + ex.Message);
+            }
+        }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Update(string id, [FromBody] POCDTO _object)
         {
             if (!ModelState.IsValid)
@@ -119,7 +134,7 @@ namespace POCAPI.Controllers
         }
 
         [HttpPatch("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             _logger.LogInformation("Deleting Blogs with id: {Id}", id);

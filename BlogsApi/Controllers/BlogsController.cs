@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using BlogsApi.Services;
 using Microsoft.AspNetCore.Authorization;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Security.Claims;
 
 namespace BlogsApi.Controllers
 {
@@ -91,7 +92,7 @@ namespace BlogsApi.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Update(string id, [FromBody] BlogsDTO _object)
         {
             if (!ModelState.IsValid)
@@ -107,20 +108,40 @@ namespace BlogsApi.Controllers
             }
 
             _logger.LogInformation("Updating Blogs with id: {Id}", id);
+
+            var userRole = User.FindFirstValue(ClaimTypes.Role);  // Extract user role from token/claims
+
+            // Fetch the existing blog to determine the current status
+            var existingBlog = await _Service.Get(id);
+            if (existingBlog == null)
+            {
+                return NotFound("Blog not found");
+            }
+
+            // If trying to reactivate the blog (set IsActive = true)
+            if (!existingBlog.IsActive && _object.IsActive)
+            {
+                if (userRole != "Admin")
+                {
+                    return Forbid("Only admins can reactivate a blog");
+                }
+            }
+
             try
             {
-                await _Service.Update(_object);
+                var updatedBlog = await _Service.Update(_object, userRole);
+                return Ok(updatedBlog);
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex.Message);
                 return BadRequest(ex.Message);
             }
-            return NoContent();
+            // return NoContent();
         }
 
         [HttpPatch("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             _logger.LogInformation("Deleting Blogs with id: {Id}", id);

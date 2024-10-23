@@ -11,8 +11,13 @@ namespace DataServices.Models
     public class ClientContact : ClientContactDTO
     {
         public string ClientId { get; set; }
+
         [ForeignKey("ClientId")]
         public Client Client { get; set; }
+
+        public string ContactTypeId { get; set; }
+        [ForeignKey("ContactTypeId")]
+        public ContactType ContactType { get; set; }
     }
     public class ClientContactDTO : AuditData
     {
@@ -24,7 +29,7 @@ namespace DataServices.Models
         //[RegularExpression(@"^[a-zA-Z0-9\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? ContactValue { get; set; }
 
-        public int? ContactType { get; set; }
+        public string? ContactType { get; set; }
 
     }
 }

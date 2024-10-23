@@ -16,6 +16,7 @@ namespace DataServices.Models
         public bool IsActive { get; set; } = true;
         public string CreatedBy { get; set; } = "SYSTEM";
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public string? UpdatedBy { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]  // To prevent default values
         public string ?UpdatedBy { get; set; }
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]  // To prevent default values

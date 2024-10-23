@@ -24,7 +24,7 @@ namespace TechnologyApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<TechnologyDTO>>> GetTechnologies()
         {
             _logger.LogInformation("Fetching all technologies");
@@ -40,7 +40,7 @@ namespace TechnologyApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<TechnologyDTO>> GetTechnology(string id)
         {
             _logger.LogInformation("Fetching technology with id: {Id}", id);
@@ -69,7 +69,7 @@ namespace TechnologyApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<TechnologyDTO>> Create([FromBody] TechnologyCreateDTO createDto)
         {
             if (!ModelState.IsValid)
@@ -93,7 +93,7 @@ namespace TechnologyApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UpdateTechnology(string id, [FromBody] TechnologyUpdateDTO updateDto)
         {
             if (!ModelState.IsValid)

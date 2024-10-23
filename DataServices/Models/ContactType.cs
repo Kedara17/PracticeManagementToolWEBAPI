@@ -7,7 +7,11 @@ using System.Threading.Tasks;
 
 namespace DataServices.Models
 {
-    public class ContactType :AuditData
+    public class ContactType : ContactTypeDTO
+    {
+        public ICollection<ClientContact> ClientContact { get; set; }
+    }
+        public class ContactTypeDTO :AuditData
     {
         [Required(ErrorMessage = "The TypeName field is required.")]
         [MinLength(3)]

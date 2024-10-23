@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -15,6 +16,14 @@ namespace DataServices.Models
         public ICollection<POCTechnology> POCTechnology { get; set; }
 
     }
+
+    public class POCDocumentDTO
+    {
+        public string? Id { get; set; }
+        public IFormFile Document { get; set; }
+
+    }
+
     public class POCDTO : AuditData
     {
         [Required(ErrorMessage = "The Title field is required.")]

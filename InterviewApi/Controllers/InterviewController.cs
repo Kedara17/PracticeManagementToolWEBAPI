@@ -90,7 +90,7 @@ namespace InterviewApi.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Update(string id, [FromBody] InterviewsDTO _object)
         {
             if (!ModelState.IsValid)
@@ -119,7 +119,7 @@ namespace InterviewApi.Controllers
         }
 
         [HttpPatch("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Delete(string id)
         {
             _logger.LogInformation("Deleting interview with id: {Id}", id);

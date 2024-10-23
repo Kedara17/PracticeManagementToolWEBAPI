@@ -2,6 +2,7 @@
 using DataServices.Models;
 using DataServices.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata;
 
 namespace POCAPI.Services
 {
@@ -68,79 +69,134 @@ namespace POCAPI.Services
             };
         }
 
-        public async Task<POCDTO> Add(POCDTO _object)
+        public async Task<POCDTO> Add(POCDTO pocDto)
         {
+            var poc = new POC();
             // Check if the POC already exists
             var existingPOC = await _context.TblPOC
-                .FirstOrDefaultAsync(t => t.Title == _object.Title);
-
+                .FirstOrDefaultAsync(t => t.Title == pocDto.Title);
             if (existingPOC != null)
                 throw new ArgumentException("A POC with the same name already exists.");
 
             var client = await _context.TblClient
-                .FirstOrDefaultAsync(d => d.Name == _object.Client);
+                .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
 
             if (client == null)
                 throw new KeyNotFoundException("Client not found");
 
-            var poc = new POC
+            poc.Title = pocDto.Title;
+            poc.ClientId = client.Id;
+            poc.Status = pocDto?.Status;
+            poc.TargetDate = pocDto.TargetDate;
+            poc.CompletedDate = pocDto.CompletedDate;
+            poc.Document = pocDto.Document;
+            poc.IsActive = pocDto.IsActive;
+            poc.CreatedBy = pocDto.CreatedBy;
+            poc.CreatedDate = pocDto.CreatedDate;
+            poc.UpdatedBy = pocDto.UpdatedBy;
+            poc.UpdatedDate = pocDto.UpdatedDate;       
+
+            // Set the Profile property if a file is uploaded
+            if (!string.IsNullOrEmpty(pocDto.Document))
             {
-                Title = _object.Title,
-                ClientId = client.Id,
-                Status = _object?.Status,
-                TargetDate = _object.TargetDate,
-                CompletedDate = _object.CompletedDate,
-                Document = _object.Document,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
-            };
+                poc.Document = pocDto.Document;
+            }
 
             _context.TblPOC.Add(poc);
             await _context.SaveChangesAsync();
 
-            _object.Id = poc.Id;
-            return _object;
+            pocDto.Id = poc.Id;
+            return pocDto;
         }
 
-        public async Task<POCDTO> Update(POCDTO _object)
+        public async Task<string> UploadFileAsync(POCDocumentDTO pocdoc)
         {
+            string filePath = "";
+            try
+            {
+                // Check if the file is not empty
+                if (pocdoc.Document.Length > 0)
+                {
+                    var file = pocdoc.Document;
+                    filePath = Path.GetFullPath($"C:\\Users\\rneerukonda1\\Desktop\\UploadProfiles\\UPLOADEDFILES\\NewFile\\{file.FileName}");
+
+                    // Save file to the specified path
+                    using (var stream = System.IO.File.Create(filePath))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+                                       
+                    if (!string.IsNullOrEmpty(pocdoc.Id))
+                    {
+                        var poc = await Get(pocdoc.Id);
+
+                        if (poc != null)
+                        {
+                            poc.Document = file.FileName;
+                            await Update(poc);
+                        }
+                    }
+                    else
+                    {
+                        return file.FileName;
+                    }
+                }
+                else
+                {
+                    throw new Exception("The uploaded file is empty.");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while uploading the file: " + ex.Message);
+            }
+
+            return filePath;
+        }
+
+        public async Task<POCDTO> Update(POCDTO pocDto)
+        {
+            var poc = await _context.TblPOC.FindAsync(pocDto.Id);
             // Check if the POC already exists
             var existingPOC = await _context.TblPOC
-                .FirstOrDefaultAsync(t => t.Title == _object.Title);
+                .FirstOrDefaultAsync(t => t.Title == pocDto.Title);
 
             if (existingPOC != null)
                 throw new ArgumentException("A POC with the same name already exists.");
 
-            var poc = await _context.TblPOC.FindAsync(_object.Id);
+            var pocData = await _context.TblPOC.FindAsync(pocDto.Id);
 
-            if (poc == null)
+            if (pocData == null)
                 throw new KeyNotFoundException("Poc not found");
 
             var client = await _context.TblClient
-                .FirstOrDefaultAsync(d => d.Name == _object.Client);
+                .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
 
             if (client == null)
                 throw new KeyNotFoundException("Author not found");
 
-            poc.Title = _object.Title;
+            poc.Title = pocDto.Title;
             poc.ClientId = client?.Id;
-            poc.Status = _object.Status;
-            poc.TargetDate = _object.TargetDate;
-            poc.CompletedDate = _object.CompletedDate;
-            poc.Document= _object.Document;
-            poc.IsActive = _object.IsActive;
-            poc.CreatedBy = _object.CreatedBy;
-            poc.CreatedDate = _object.CreatedDate;
-            poc.UpdatedBy = _object.UpdatedBy;
-            poc.UpdatedDate = _object.UpdatedDate;
+            poc.Status = pocDto.Status;
+            poc.TargetDate = pocDto.TargetDate;
+            poc.CompletedDate = pocDto.CompletedDate;
+            poc.Document= pocDto.Document;
+            poc.IsActive = pocDto.IsActive;
+            poc.CreatedBy = pocDto.CreatedBy;
+            poc.CreatedDate = pocDto.CreatedDate;
+            poc.UpdatedBy = pocDto.UpdatedBy;
+            poc.UpdatedDate = pocDto.UpdatedDate;
+
+            // Set the Profile property if a file is uploaded
+            if (!string.IsNullOrEmpty(pocDto.Document))
+            {
+                poc.Document = pocDto.Document;
+            }
 
             _context.Entry(poc).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return _object;
+            return pocDto;
         }
 
         public async Task<bool> Delete(string id)

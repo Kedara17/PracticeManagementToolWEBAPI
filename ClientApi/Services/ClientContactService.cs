@@ -20,7 +20,10 @@ namespace ClientApi.Services
 
         public async Task<IEnumerable<ClientContactDTO>> GetAll()
         {
-            var clientContacts = await _context.TblClientContact.Include(c => c.Client).ToListAsync();
+            var clientContacts = await _context.TblClientContact
+                .Include(c => c.Client)
+                .Include(c => c.ContactType)
+                .ToListAsync();
             var ccDTO = new List<ClientContactDTO>();
 
             foreach (var contact in clientContacts)
@@ -30,7 +33,7 @@ namespace ClientApi.Services
                     Id = contact.Id,
                     Client = contact.Client?.Name,
                     ContactValue = contact.ContactValue,
-                    ContactType = contact.ContactType,
+                    ContactType = contact.ContactType?.TypeName,
                     IsActive = contact.IsActive,
                     CreatedBy = contact.CreatedBy,
                     CreatedDate = contact.CreatedDate,
@@ -45,7 +48,8 @@ namespace ClientApi.Services
         public async Task<ClientContactDTO> Get(string id)
         {
             var clientContact = await _context.TblClientContact
-                .Include(c => c.Client)
+                .Include(e => e.Client)
+                .Include(e => e.ContactType)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (clientContact == null)
@@ -56,7 +60,7 @@ namespace ClientApi.Services
                 Id = clientContact.Id,
                 Client = clientContact.Client?.Name,
                 ContactValue = clientContact.ContactValue,
-                ContactType = clientContact.ContactType,
+                ContactType = clientContact.ContactType?.TypeName,
                 IsActive = clientContact.IsActive,
                 CreatedBy = clientContact.CreatedBy,
                 CreatedDate = clientContact.CreatedDate,
@@ -66,74 +70,85 @@ namespace ClientApi.Services
 
         }
 
-        public async Task<ClientContactDTO> Add(ClientContactDTO _object)
+        public async Task<ClientContactDTO> Add(ClientContactDTO clientContactDTO)
         {
             // Check if the ContactValue name already exists
             var existingContactValue = await _context.TblClientContact
-                .FirstOrDefaultAsync(t => t.ContactValue == _object.ContactValue);
+                .FirstOrDefaultAsync(t => t.ContactValue == clientContactDTO.ContactValue);
 
             if (existingContactValue != null)
                 throw new ArgumentException("A ContactValue with the same name already exists.");
 
             var client = await _context.TblClient
-                .FirstOrDefaultAsync(c => c.Name == _object.Client);
+                .FirstOrDefaultAsync(e => e.Name == clientContactDTO.Client);
 
             if (client == null)
                 throw new KeyNotFoundException("Client not found");
 
+            var contactType = await _context.TblContactType
+               .FirstOrDefaultAsync(e => e.TypeName == clientContactDTO.ContactType);
+
+            if (contactType == null)
+                throw new KeyNotFoundException("ContactType not found");
+
             var clientContact = new ClientContact
             {
                 ClientId = client.Id,
-                ContactValue = _object.ContactValue,
-                ContactType = _object.ContactType,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
+                ContactValue = clientContactDTO.ContactValue,
+                ContactTypeId = contactType.Id,
+                IsActive = clientContactDTO.IsActive,
+                CreatedBy = clientContactDTO.CreatedBy,
+                CreatedDate = clientContactDTO.CreatedDate,
+                UpdatedBy = clientContactDTO.UpdatedBy,
+                UpdatedDate = clientContactDTO.UpdatedDate
             };
 
             _context.TblClientContact.Add(clientContact);
             await _context.SaveChangesAsync();
 
-            _object.Id = clientContact.Id;
-            return _object;
+            clientContactDTO.Id = clientContact.Id;
+            return clientContactDTO;
 
         }
 
-        public async Task<ClientContactDTO> Update(ClientContactDTO _object)
+        public async Task<ClientContactDTO> Update(ClientContactDTO clientContactDTO)
         {
+            var clientContact = await _context.TblClientContact.FindAsync(clientContactDTO.Id);
             // Check if the ContactValue name already exists
             var existingContactValue = await _context.TblClientContact
-                .FirstOrDefaultAsync(t => t.ContactValue == _object.ContactValue);
+                .FirstOrDefaultAsync(t => t.ContactValue == clientContactDTO.ContactValue);
 
             if (existingContactValue != null)
                 throw new ArgumentException("A ContactValue with the same name already exists.");
-
-            var clientContact = await _context.TblClientContact.FindAsync(_object.Id);
 
             if (clientContact == null)
                 throw new KeyNotFoundException("ClientContact not found");
 
             var client = await _context.TblClient
-                .FirstOrDefaultAsync(d => d.Name == _object.Client);
+                .FirstOrDefaultAsync(d => d.Name == clientContactDTO.Client);
 
             if (client == null)
                 throw new KeyNotFoundException("Client not found");
 
+            var contactType = await _context.TblContactType
+               .FirstOrDefaultAsync(d => d.TypeName == clientContactDTO.ContactType);
+
+            if (contactType == null)
+                throw new KeyNotFoundException("ContactType not found");
+
             clientContact.ClientId = client.Id;
-            clientContact.ContactValue = _object.ContactValue;
-            clientContact.ContactType = _object.ContactType;
-            clientContact.IsActive = _object.IsActive;
-            clientContact.CreatedBy = _object.CreatedBy;
-            clientContact.CreatedDate = _object.CreatedDate;
-            clientContact.UpdatedBy = _object.UpdatedBy;
-            clientContact.UpdatedDate = _object.UpdatedDate;
+            clientContact.ContactValue = clientContactDTO.ContactValue;
+            clientContact.ContactTypeId = contactType.Id;
+            clientContact.IsActive = clientContactDTO.IsActive;
+            clientContact.CreatedBy = clientContactDTO.CreatedBy;
+            clientContact.CreatedDate = clientContactDTO.CreatedDate;
+            clientContact.UpdatedBy = clientContactDTO.UpdatedBy;
+            clientContact.UpdatedDate = clientContactDTO.UpdatedDate;
 
             _context.Entry(clientContact).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return _object;
+            return clientContactDTO;
         }
 
         public async Task<bool> Delete(string id)
