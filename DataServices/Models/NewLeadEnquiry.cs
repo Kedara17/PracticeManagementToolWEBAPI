@@ -31,7 +31,8 @@ namespace DataServices.Models
     {
         public string? EmployeeID { get; set; }
         public string? AssignTo { get; set; }
-        public string[] TechnologyID { get; set; }
+        [NotMapped]
+        public string[] Technology { get; set; }
         public string? CompanyName { get; set; }
         public string? CompanyRepresentative { get; set; }
         public string? RepresentativeDesignation { get; set; }

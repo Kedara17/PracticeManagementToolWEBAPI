@@ -48,14 +48,15 @@ namespace LeadEnquiryApi.Services
         public async Task<NewLeadEnquiryTechnologyDTO> Get(string id)
         {
             var enquiryTechnology = await _context.TblNewLeadEnquiryTechnology
-                .Include(ne => ne.NewLeadEnquiryID)
-                .Include(ne => ne.TechnologyID)
+                .Include(ne => ne.NewLeadEnquiry)
+                .Include(ne => ne.Technology)
                 .FirstOrDefaultAsync(ne => ne.Id == id);
 
             if (enquiryTechnology == null) return null;
 
             return new NewLeadEnquiryTechnologyDTO
             {
+                Id = enquiryTechnology.Id,
                 NewLeadEnquiryID = enquiryTechnology.NewLeadEnquiryID,
                 TechnologyID = enquiryTechnology.TechnologyID,
                 IsActive = enquiryTechnology.IsActive,
@@ -75,7 +76,8 @@ namespace LeadEnquiryApi.Services
                 throw new KeyNotFoundException("New Lead Enquiry not found");
 
             var technology = await _context.TblTechnology
-                .FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
+                .FirstOrDefaultAsync(ne => ne.Name == dto.TechnologyID);
+                //.FirstOrDefaultAsync(ne => dto.TechnologyID.Contains(ne.Id));
             if (technology == null)
                 throw new KeyNotFoundException("Technology not found");
 
@@ -83,37 +85,34 @@ namespace LeadEnquiryApi.Services
             {
                 NewLeadEnquiryID = newLeadEnquiry.Id,
                 TechnologyID = technology.Id,
-                IsActive = dto.IsActive,
+                IsActive = true,
                 CreatedBy = dto.CreatedBy,
-                CreatedDate = dto.CreatedDate,
+                CreatedDate = DateTime.Now,
                 UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = dto.UpdatedDate
+                UpdatedDate = DateTime.Now
             };
             _context.TblNewLeadEnquiryTechnology.Add(newleadenquiryTechnology);
             await _context.SaveChangesAsync();
 
-            dto.Id = newleadenquiryTechnology.Id;           
+            dto.Id = newleadenquiryTechnology.Id;
             return dto;
         }
 
         public async Task<NewLeadEnquiryTechnologyDTO> Update(NewLeadEnquiryTechnologyDTO dto)
         {
-            // Find existing NewLeadEnquiryTechnology entry
-            var newleadenquiryTechnology = await _context.TblNewLeadEnquiryTechnology
-                .FirstOrDefaultAsync(ne => ne.NewLeadEnquiryID == dto.NewLeadEnquiryID && ne.TechnologyID == dto.TechnologyID);
+            var newleadenquiryTechnology = await _context.TblNewLeadEnquiryTechnology.FindAsync(dto.Id);
 
             if (newleadenquiryTechnology == null)
                 throw new KeyNotFoundException("New Lead Enquiry Technology entry not found");
 
-            // Validate NewLeadEnquiry exists
             var newLeadEnquiry = await _context.TblNewLeadEnquiry
                 .FirstOrDefaultAsync(ne => ne.Id == dto.NewLeadEnquiryID);
             if (newLeadEnquiry == null)
                 throw new KeyNotFoundException("New Lead Enquiry not found");
 
-            // Validate Technology exists
             var technology = await _context.TblTechnology
-                .FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
+                //.FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
+                .FirstOrDefaultAsync(ne => dto.TechnologyID.Contains(ne.Id));
             if (technology == null)
                 throw new KeyNotFoundException("Technology not found");
 
@@ -127,7 +126,7 @@ namespace LeadEnquiryApi.Services
             newleadenquiryTechnology.UpdatedDate = dto.UpdatedDate;
 
             _context.Entry(newleadenquiryTechnology).State = EntityState.Modified;
-                     
+
             // Save changes
             await _context.SaveChangesAsync();
 
@@ -137,7 +136,7 @@ namespace LeadEnquiryApi.Services
         public async Task<bool> Delete(string id)
         {
             var existingData = await _repository.Get(id);
-            if(existingData == null)
+            if (existingData == null)
             {
                 throw new ArgumentException($"with ID {id} not found.");
             }
