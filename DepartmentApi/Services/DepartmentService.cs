@@ -12,16 +12,19 @@ namespace DepartmentApi.Services
         private readonly IRepository<Department> _repository;
         private readonly DataBaseContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<DepartmentService> _logger; 
 
-        public DepartmentService(IRepository<Department> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor)
+        public DepartmentService(IRepository<Department> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor, ILogger<DepartmentService> logger)
         {
             _repository = repository;
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<DepartmentDTO>> GetAll()
         {
+            _logger.LogInformation("Fetching all departments");
             var departments = await _context.TblDepartment.ToListAsync();
 
             var departmentDTOs = new List<DepartmentDTO>();
@@ -45,6 +48,7 @@ namespace DepartmentApi.Services
 
         public async Task<DepartmentDTO> Get(string id)
         {
+            _logger.LogInformation("Fetching department with id: {Id}", id);
             var department = await _context.TblDepartment
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -65,6 +69,7 @@ namespace DepartmentApi.Services
 
         public async Task<DepartmentDTO> Add(DepartmentDTO _object)
         {
+            _logger.LogInformation("Adding a new department with name: {Name}", _object.Name);
             // Check if the Department name already exists
             var existingDepartment = await _context.TblDepartment
                 .FirstOrDefaultAsync(t => t.Name == _object.Name);
@@ -90,7 +95,7 @@ namespace DepartmentApi.Services
 
         public async Task<DepartmentDTO> Update(DepartmentDTO _object)
         {
-
+            _logger.LogInformation("Updating department with id: {Id}", _object.Id);
             var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
             var department = await _context.TblDepartment.FindAsync(_object.Id);
 
@@ -98,6 +103,14 @@ namespace DepartmentApi.Services
                 throw new KeyNotFoundException("Department not found");
 
             department.Name = _object.Name;
+
+            // Update the IsActive state if it's modified by the admin
+            if (department.IsActive != _object.IsActive)
+            {
+                department.IsActive = _object.IsActive;
+                _logger.LogInformation("Department {Id} state changed to {IsActive}", _object.Id, _object.IsActive);
+            }
+
             department.UpdatedBy = userName;
             department.UpdatedDate = DateTime.Now;
 
@@ -109,6 +122,7 @@ namespace DepartmentApi.Services
 
         public async Task<bool> Delete(string id)
         {
+            _logger.LogInformation("Deleting department with id: {Id}", id);
             // Check if the technology exists
             var existingData = await _repository.Get(id);
             if (existingData == null)
@@ -124,6 +138,7 @@ namespace DepartmentApi.Services
 
         public async Task<DepartmentDTO> GetByName(string name)
         {
+            _logger.LogInformation("Fetching department with name: {Name}", name);
             return await _context.TblDepartment.FirstOrDefaultAsync(d => d.Name == name);
         }
 

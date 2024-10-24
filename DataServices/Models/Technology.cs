@@ -39,5 +39,6 @@ namespace DataServices.Models
     public class TechnologyUpdateDTO : TechnologyCreateDTO
     {
         public string Id { get; set; }
+        public bool IsActive { get; set; }
     }
 }

@@ -115,9 +115,25 @@ namespace DepartmentApi.Controllers
                 return BadRequest("ID mismatch.");
             }
 
+            // Retrieve the department by ID
+            var existingDepartment = await _Service.Get(id);
+
+            if (existingDepartment == null)
+            {
+                _logger.LogWarning("Department with id: {Id} not found", id);
+                return NotFound();
+            }
+
+            // Only admins can reactivate inactive records
+            if (!existingDepartment.IsActive && !User.IsInRole("Admin"))
+            {
+                _logger.LogWarning("User without admin privileges attempted to reactivate department with id: {Id}", id);
+                return Forbid();
+            }
+
             // Check if the updated name is unique (excluding the current department)
-            var existingDepartment = await _Service.GetByName(updateDto.Name);
-            if (existingDepartment != null && existingDepartment.Id != id)
+            var departmentByName = await _Service.GetByName(updateDto.Name);
+            if (departmentByName != null && departmentByName.Id != id)
             {
                 _logger.LogWarning("Department with name '{Name}' already exists", updateDto.Name);
                 return BadRequest($"Department with name '{updateDto.Name}' already exists.");
@@ -126,8 +142,13 @@ namespace DepartmentApi.Controllers
             try
             {
                 // Map the updateDto back to the original DepartmentDTO
-                var departmentDto = new DepartmentDTO { Id = id, Name = updateDto.Name };
+                var departmentDto = new DepartmentDTO { Id = id, Name = updateDto.Name, IsActive = updateDto.IsActive };
                 await _Service.Update(departmentDto);
+
+                //// Update department (including IsActive state)
+                //existingDepartment.Name = updateDto.Name;
+                //existingDepartment.IsActive = updateDto.IsActive; // Admin can change the active state
+                //await _Service.Update(existingDepartment);
             }
             catch (KeyNotFoundException ex)
             {

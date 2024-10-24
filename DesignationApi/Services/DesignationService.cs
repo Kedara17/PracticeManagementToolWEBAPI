@@ -11,16 +11,19 @@ namespace DesignationApi.Services
         private readonly IRepository<Designation> _repository;
         private readonly DataBaseContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<DesignationService> _logger;
 
-        public DesignationService(IRepository<Designation> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor)
+        public DesignationService(IRepository<Designation> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor, ILogger<DesignationService> logger)
         {
             _repository = repository;
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<DesignationDTO>> GetAll()
         {
+            _logger.LogInformation("Fetching all designations");
             var designations = await _context.TblDesignation.ToListAsync();
 
             var designationDTOs = new List<DesignationDTO>();
@@ -43,6 +46,7 @@ namespace DesignationApi.Services
         }
         public async Task<DesignationDTO> Get(string id)
         {
+            _logger.LogInformation("Fetching designation with id: {Id}", id);
             var designation = await _context.TblDesignation
                 .FirstOrDefaultAsync(t => t.Id == id);
 
@@ -63,6 +67,7 @@ namespace DesignationApi.Services
 
         public async Task<DesignationDTO> Add(DesignationDTO _object)
         {
+            _logger.LogInformation("Adding a new designation with name: {Name}", _object.Name);
             // Check if the Designation name already exists
             var existingDesignation = await _context.TblDesignation
                 .FirstOrDefaultAsync(t => t.Name == _object.Name);
@@ -88,6 +93,7 @@ namespace DesignationApi.Services
 
         public async Task<DesignationDTO> Update(DesignationDTO _object)
         {
+            _logger.LogInformation("Updating designation with id: {Id}", _object.Id);
             var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
             var designation = await _context.TblDesignation.FindAsync(_object.Id);
 
@@ -95,6 +101,14 @@ namespace DesignationApi.Services
                 throw new KeyNotFoundException("Designation not found");
 
             designation.Name = _object.Name;
+
+            // Update the IsActive state if it's modified by the admin
+            if (designation.IsActive != _object.IsActive)
+            {
+                designation.IsActive = _object.IsActive;
+                _logger.LogInformation("Designation {Id} state changed to {IsActive}", _object.Id, _object.IsActive);
+            }
+
             designation.UpdatedBy = employeeName;
             designation.UpdatedDate = DateTime.Now;
 
@@ -106,6 +120,7 @@ namespace DesignationApi.Services
 
         public async Task<bool> Delete(string id)
         {
+            _logger.LogInformation("Deleting designation with id: {Id}", id);
             // Check if the technology exists
             var existingData = await _repository.Get(id);
             if (existingData == null)
@@ -119,6 +134,7 @@ namespace DesignationApi.Services
         }
         public async Task<DesignationDTO> GetByName(string name)
         {
+            _logger.LogInformation("Fetching designation with name: {Name}", name);
             return await _context.TblDesignation.FirstOrDefaultAsync(d => d.Name == name);
         }
     }
