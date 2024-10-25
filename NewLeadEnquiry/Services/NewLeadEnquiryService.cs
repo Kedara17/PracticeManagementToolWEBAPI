@@ -2,6 +2,8 @@
 using DataServices.Models;
 using DataServices.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Runtime.InteropServices;
 
 namespace NewLeadApi.Services
 {
@@ -38,7 +40,6 @@ namespace NewLeadApi.Services
                 IsActive = enquiry.IsActive,
                 UpdatedBy = enquiry.UpdatedBy,
                 UpdatedDate = enquiry.UpdatedDate,
-                Profile = enquiry.Profile
             }).ToList();
             return dto;
         }
@@ -67,7 +68,6 @@ namespace NewLeadApi.Services
                 IsActive = newLeadEnquiry.IsActive,
                 UpdatedBy = newLeadEnquiry.UpdatedBy,
                 UpdatedDate = newLeadEnquiry.UpdatedDate,
-                Profile = newLeadEnquiry.Profile
             };
         }
 
@@ -99,17 +99,24 @@ namespace NewLeadApi.Services
             newLeadEnquiry.CreatedDate = DateTime.UtcNow;
             newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
             newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
-            newLeadEnquiry.Profile = dto.Profile;
+
+            dto.Id = newLeadEnquiry.Id;
+            await _context.TblNewLeadEnquiry.AddAsync(newLeadEnquiry);
+            await _context.SaveChangesAsync();
 
             // Set the Profile property if a file is uploaded
-            if (!string.IsNullOrEmpty(dto.Profile))
+            if (!string.IsNullOrEmpty(dto.FileName))
             {
-                newLeadEnquiry.Profile = dto.Profile;
-            }
+                var newLeadEnquiryDocument = new NewLeadEnquiryDocuments
+                {
+                    NewLeadEnquiryID = dto.Id,
+                    FileName = dto.FileName,
+                };
 
-            _context.TblNewLeadEnquiry.Add(newLeadEnquiry);
-            await _context.SaveChangesAsync();
-            dto.Id = newLeadEnquiry.Id;
+                await _context.TblNewLeadEnquiryDocuments.AddAsync(newLeadEnquiryDocument);
+                await _context.SaveChangesAsync();
+
+            }
 
             // Handle technologies
             if (dto.Technology != null && dto.Technology.Any())
@@ -130,15 +137,15 @@ namespace NewLeadApi.Services
             return dto;
         }
 
-        public async Task<string> UploadFileAsync(NewLeadEnquiryProfileDTO newLeadEnquiryProfile)
+        public async Task<string> UploadFileAsync(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
         {
             string filePath = "";
             try
             {
-                if (newLeadEnquiryProfile.Profile.Length > 0)
+                if (newLeadEnquiryFileName.FileName.Length > 0)
                 {
-                    var file = newLeadEnquiryProfile.Profile;
-                    filePath = Path.GetFullPath($"C:\\Users\\skolli5\\Desktop\\UpdatedProfiles\\{file.FileName}");
+                    var file = newLeadEnquiryFileName.FileName;
+                    filePath = Path.GetFullPath($"C:\\Users\\skolli5\\UpdatedProfiles\\Resumes\\{file.FileName}");
                     // Save the file
                     using (var stream = System.IO.File.Create(filePath))
                     {
@@ -146,13 +153,13 @@ namespace NewLeadApi.Services
                     }
 
                     // Update the enquiry's profile if ID is provided
-                    if (!string.IsNullOrEmpty(newLeadEnquiryProfile.Id))
+                    if (!string.IsNullOrEmpty(newLeadEnquiryFileName.Id))
                     {
-                        var newLeadEnquiry = await Get(newLeadEnquiryProfile.Id);
+                        var newLeadEnquiry = await Get(newLeadEnquiryFileName.Id);
 
                         if (newLeadEnquiry != null)
                         {
-                            newLeadEnquiry.Profile = file.FileName;
+                            newLeadEnquiry.FileName = file.FileName;
                             await Update(newLeadEnquiry);
                         }
                     }
@@ -203,12 +210,26 @@ namespace NewLeadApi.Services
             newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
 
             // Set the Profile property if a file is uploaded
-            if (!string.IsNullOrEmpty(dto.Profile))
+            if (!string.IsNullOrEmpty(dto.FileName))
             {
-                newLeadEnquiry.Profile = dto.Profile;
-            }
+                var existingDocument = await _context.TblNewLeadEnquiryDocuments
+                    .FirstOrDefaultAsync(d => d.NewLeadEnquiryID == dto.Id);
 
-            _context.Entry(newLeadEnquiry).State = EntityState.Modified;
+                if (existingDocument != null)
+                {
+                    existingDocument.FileName = dto.FileName;
+                    _context.Entry(existingDocument).State = EntityState.Modified;
+                }
+                else
+                {
+                    var newDocument = new NewLeadEnquiryDocuments
+                    {
+                        NewLeadEnquiryID = dto.Id,
+                        FileName = dto.FileName
+                    };
+                    await _context.TblNewLeadEnquiryDocuments.AddAsync(newDocument);
+                }
+            }
 
             // Update technologies
             if (dto.Technology != null && dto.Technology.Any())

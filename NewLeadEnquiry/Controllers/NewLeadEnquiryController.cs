@@ -71,11 +71,11 @@ namespace NewLeadApi.Controllers
 
         [HttpPost("uploadFile")]
         [Authorize(Roles = "Admin, Director, Project Manager")]
-        public async Task<IActionResult> UploadFile(NewLeadEnquiryProfileDTO newLeadEnquiryProfile)
+        public async Task<IActionResult> UploadFile(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
         {
             try
             {
-                var filePath = await _service.UploadFileAsync(newLeadEnquiryProfile);
+                var filePath = await _service.UploadFileAsync(newLeadEnquiryFileName);
                 return Ok(new { message = "Your File is uploaded successfully.", path = filePath });
             }
             catch (Exception ex)

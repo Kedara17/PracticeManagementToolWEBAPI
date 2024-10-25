@@ -76,8 +76,7 @@ namespace LeadEnquiryApi.Services
                 throw new KeyNotFoundException("New Lead Enquiry not found");
 
             var technology = await _context.TblTechnology
-                .FirstOrDefaultAsync(ne => ne.Name == dto.TechnologyID);
-                //.FirstOrDefaultAsync(ne => dto.TechnologyID.Contains(ne.Id));
+                .FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
             if (technology == null)
                 throw new KeyNotFoundException("Technology not found");
 
@@ -87,9 +86,9 @@ namespace LeadEnquiryApi.Services
                 TechnologyID = technology.Id,
                 IsActive = true,
                 CreatedBy = dto.CreatedBy,
-                CreatedDate = DateTime.Now,
+                CreatedDate = DateTime.UtcNow,
                 UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = DateTime.Now
+                UpdatedDate = DateTime.UtcNow
             };
             _context.TblNewLeadEnquiryTechnology.Add(newleadenquiryTechnology);
             await _context.SaveChangesAsync();
@@ -111,8 +110,7 @@ namespace LeadEnquiryApi.Services
                 throw new KeyNotFoundException("New Lead Enquiry not found");
 
             var technology = await _context.TblTechnology
-                //.FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
-                .FirstOrDefaultAsync(ne => dto.TechnologyID.Contains(ne.Id));
+                .FirstOrDefaultAsync(ne => ne.Id == dto.TechnologyID);
             if (technology == null)
                 throw new KeyNotFoundException("Technology not found");
 
