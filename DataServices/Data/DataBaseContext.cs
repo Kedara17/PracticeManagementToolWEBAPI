@@ -284,7 +284,7 @@ namespace DataServices.Data
 
             //-------------- NewLeadEnquiryDocuments table-----------------
             modelBuilder.Entity<NewLeadEnquiryDocuments>()
-                .HasOne(f => f.NewLeadEnquiry)
+                .HasOne(f => f.NewLeadEnquirys)
                 .WithMany(f => f.NewLeadEnquiryDocuments)
                 .HasForeignKey(f => f.NewLeadEnquiryID);
         }
