@@ -25,7 +25,7 @@ namespace CertificationsApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<CertificationsDTO>>> GetAll()
         {
             _logger.LogInformation("Fetching all certifications");
@@ -42,7 +42,7 @@ namespace CertificationsApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CertificationsDTO>> Get(string id)
         {
             _logger.LogInformation("Fetching certification with id: {Id}", id);
@@ -70,7 +70,7 @@ namespace CertificationsApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<CertificationsDTO>> Add([FromBody] CertificationsDTO certification)
         {
             Console.WriteLine("Entered");
@@ -96,7 +96,7 @@ namespace CertificationsApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(string id, [FromBody] CertificationsDTO certification)
         {
             if (!ModelState.IsValid)
