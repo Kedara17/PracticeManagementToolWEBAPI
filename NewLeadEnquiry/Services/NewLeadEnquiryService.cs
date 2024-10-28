@@ -1,6 +1,9 @@
 ﻿using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Runtime.InteropServices;
 
 namespace NewLeadApi.Services
 {
@@ -17,78 +20,254 @@ namespace NewLeadApi.Services
 
         public async Task<IEnumerable<NewLeadEnquiryDTO>> GetAll()
         {
-            var enquiries = await _repository.GetAll();
-            return enquiries.Select(e => new NewLeadEnquiryDTO
-            {
-                CompanyName = e.CompanyName,
-                CompanyRepresentative = e.CompanyRepresentative,
-                RepresentativeDesignation = e.RepresentativeDesignation,
-                Requirement = e.Requirement,
-                EnquiryDate = e.EnquiryDate,
-                Status = e.Status,
-                Comments = e.Comments
-            });
-        }
+            var enquiries = await _context.TblNewLeadEnquiry
+            .Include(ne => ne.Employee)
+            .Include(ne => ne.AssignedEmployee)
+            .ToListAsync();
 
-        public async Task<NewLeadEnquiryDTO> Get(string id)
-        {
-            var enquiry = await _repository.Get(id);
-            if (enquiry == null) return null;
-
-            return new NewLeadEnquiryDTO
+            var dto = enquiries.Select(enquiry => new NewLeadEnquiryDTO
             {
-                EmployeeID = enquiry.EmployeeID,
-                AssignTo = enquiry.AssignTo,
+                Id = enquiry.Id,
                 CompanyName = enquiry.CompanyName,
                 CompanyRepresentative = enquiry.CompanyRepresentative,
                 RepresentativeDesignation = enquiry.RepresentativeDesignation,
                 Requirement = enquiry.Requirement,
                 EnquiryDate = enquiry.EnquiryDate,
+                EmployeeID = enquiry.EmployeeID,
+                AssignTo = enquiry.AssignTo,
                 Status = enquiry.Status,
                 Comments = enquiry.Comments,
                 IsActive = enquiry.IsActive,
                 UpdatedBy = enquiry.UpdatedBy,
-                UpdatedDate = enquiry.UpdatedDate
+                UpdatedDate = enquiry.UpdatedDate,
+            }).ToList();
+            return dto;
+        }
+
+        public async Task<NewLeadEnquiryDTO> Get(string id)
+        {
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry
+            .Include(ne => ne.Employee)
+            .Include(ne => ne.AssignedEmployee)
+            .FirstOrDefaultAsync(ne => ne.Id == id);
+
+            if (newLeadEnquiry == null) return null;
+
+            return new NewLeadEnquiryDTO
+            {
+                Id = newLeadEnquiry.Id,
+                CompanyName = newLeadEnquiry.CompanyName,
+                CompanyRepresentative = newLeadEnquiry.CompanyRepresentative,
+                RepresentativeDesignation = newLeadEnquiry.RepresentativeDesignation,
+                Requirement = newLeadEnquiry.Requirement,
+                EnquiryDate = newLeadEnquiry.EnquiryDate,
+                EmployeeID = newLeadEnquiry.EmployeeID,
+                AssignTo = newLeadEnquiry.AssignTo,
+                Status = newLeadEnquiry.Status,
+                Comments = newLeadEnquiry.Comments,
+                IsActive = newLeadEnquiry.IsActive,
+                UpdatedBy = newLeadEnquiry.UpdatedBy,
+                UpdatedDate = newLeadEnquiry.UpdatedDate,
             };
         }
 
         public async Task<NewLeadEnquiryDTO> Add(NewLeadEnquiryDTO dto)
         {
-            var newLeadEnquiry = new NewLeadEnquiry
-            {
-                CompanyName = dto.CompanyName,
-                CompanyRepresentative = dto.CompanyRepresentative,
-                RepresentativeDesignation = dto.RepresentativeDesignation,
-                Requirement = dto.Requirement,
-                EnquiryDate = dto.EnquiryDate,
-                Status = dto.Status,
-                Comments = dto.Comments
-            };
+            var newLeadEnquiry = new NewLeadEnquiry();
 
-            await _repository.Create(newLeadEnquiry);
+            var employeeId = await _context.TblEmployee
+              .FirstOrDefaultAsync(d => d.Id == dto.EmployeeID);
+            if (employeeId == null)
+                throw new KeyNotFoundException("Employee not found");
+
+            var assignTo = await _context.TblEmployee
+               .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
+            if (assignTo == null)
+                throw new KeyNotFoundException("AssignTo not found");
+
+            newLeadEnquiry.CompanyName = dto.CompanyName;
+            newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
+            newLeadEnquiry.RepresentativeDesignation = dto.RepresentativeDesignation;
+            newLeadEnquiry.Requirement = dto.Requirement;
+            newLeadEnquiry.EnquiryDate = dto.EnquiryDate;
+            newLeadEnquiry.EmployeeID = dto.EmployeeID;
+            newLeadEnquiry.AssignTo = dto.AssignTo;
+            newLeadEnquiry.Status = dto.Status;
+            newLeadEnquiry.Comments = dto.Comments;
+            newLeadEnquiry.IsActive = true; // Assuming new enquiries are active by default
+            newLeadEnquiry.CreatedBy = dto.CreatedBy;
+            newLeadEnquiry.CreatedDate = DateTime.UtcNow;
+            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
+            newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
+
+            dto.Id = newLeadEnquiry.Id;
+            await _context.TblNewLeadEnquiry.AddAsync(newLeadEnquiry);
+            await _context.SaveChangesAsync();
+
+            // Set the Profile property if a file is uploaded
+            if (!string.IsNullOrEmpty(dto.FileName))
+            {
+                var newLeadEnquiryDocument = new NewLeadEnquiryDocuments
+                {
+                    NewLeadEnquiryID = dto.Id,
+                    FileName = dto.FileName,
+                };
+
+                await _context.TblNewLeadEnquiryDocuments.AddAsync(newLeadEnquiryDocument);
+                await _context.SaveChangesAsync();
+
+            }
+
+            // Handle technologies
+            if (dto.Technology != null && dto.Technology.Any())
+            {
+                foreach (var technologyId in dto.Technology)
+                {
+                    var newLeadEnquiryTechnology = new NewLeadEnquiryTechnology
+                    {
+                        NewLeadEnquiryID = newLeadEnquiry.Id,
+                        TechnologyID = technologyId.ToString(),
+                    };
+
+                    await _context.TblNewLeadEnquiryTechnology.AddAsync(newLeadEnquiryTechnology);
+                }
+                await _context.SaveChangesAsync();
+            }
+
             return dto;
+        }
+
+        public async Task<string> UploadFileAsync(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
+        {
+            string filePath = "";
+            try
+            {
+                if (newLeadEnquiryFileName.FileName.Length > 0)
+                {
+                    var file = newLeadEnquiryFileName.FileName;
+                    filePath = Path.GetFullPath($"C:\\Users\\skolli5\\UpdatedProfiles\\Resumes\\{file.FileName}");
+                    // Save the file
+                    using (var stream = System.IO.File.Create(filePath))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    // Update the enquiry's profile if ID is provided
+                    if (!string.IsNullOrEmpty(newLeadEnquiryFileName.Id))
+                    {
+                        var newLeadEnquiry = await Get(newLeadEnquiryFileName.Id);
+
+                        if (newLeadEnquiry != null)
+                        {
+                            newLeadEnquiry.FileName = file.FileName;
+                            await Update(newLeadEnquiry);
+                        }
+                    }
+                    else
+                    {
+                        return file.FileName;
+                    }
+                }
+                else
+                {
+                    throw new Exception("The uploaded file is empty.");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while uploading the file: " + ex.Message);
+            }
+
+            return filePath;
         }
 
         public async Task<NewLeadEnquiryDTO> Update(NewLeadEnquiryDTO dto)
         {
-            var enquiry = await _repository.Get(dto.Id);
-            if (enquiry == null) throw new KeyNotFoundException("Lead Enquiry not found.");
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry.FindAsync(dto.Id);
+            if (newLeadEnquiry == null)
+            {
+                throw new KeyNotFoundException($"Lead Enquiry not found for ID: {dto.Id}");
+            }
 
-            enquiry.CompanyName = dto.CompanyName;
-            enquiry.CompanyRepresentative = dto.CompanyRepresentative;
-            enquiry.RepresentativeDesignation = dto.RepresentativeDesignation;
-            enquiry.Requirement = dto.Requirement;
-            enquiry.EnquiryDate = dto.EnquiryDate;
-            enquiry.Status = dto.Status;
-            enquiry.Comments = dto.Comments;
+            var employeeId = await _context.TblEmployee.FindAsync(dto.EmployeeID);
+            if (employeeId == null)
+                throw new KeyNotFoundException("EmployeeID not found");
 
-            await _repository.Update(enquiry);
+            var assignTo = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
+            if (assignTo == null)
+                throw new KeyNotFoundException("AssignTo not found");
+
+            newLeadEnquiry.CompanyName = dto.CompanyName;
+            newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
+            newLeadEnquiry.RepresentativeDesignation = dto.RepresentativeDesignation;
+            newLeadEnquiry.Requirement = dto.Requirement;
+            newLeadEnquiry.EnquiryDate = dto.EnquiryDate;
+            newLeadEnquiry.Status = dto.Status;
+            newLeadEnquiry.Comments = dto.Comments;
+            newLeadEnquiry.IsActive = dto.IsActive;
+            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
+            newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
+
+            // Set the Profile property if a file is uploaded
+            if (!string.IsNullOrEmpty(dto.FileName))
+            {
+                var existingDocument = await _context.TblNewLeadEnquiryDocuments
+                    .FirstOrDefaultAsync(d => d.NewLeadEnquiryID == dto.Id);
+
+                if (existingDocument != null)
+                {
+                    existingDocument.FileName = dto.FileName;
+                    _context.Entry(existingDocument).State = EntityState.Modified;
+                }
+                else
+                {
+                    var newDocument = new NewLeadEnquiryDocuments
+                    {
+                        NewLeadEnquiryID = dto.Id,
+                        FileName = dto.FileName
+                    };
+                    await _context.TblNewLeadEnquiryDocuments.AddAsync(newDocument);
+                }
+            }
+
+            // Update technologies
+            if (dto.Technology != null && dto.Technology.Any())
+            {
+                // Remove old technologies
+                var existingTechnologies = await _context.TblNewLeadEnquiryTechnology
+                    .Where(ne => ne.NewLeadEnquiryID == dto.Id)
+                    .ToListAsync();
+                _context.TblNewLeadEnquiryTechnology.RemoveRange(existingTechnologies);
+
+                // Add new technologies
+                foreach (var technologyId in dto.Technology)
+                {
+                    var newLeadEnquiryTechnology = new NewLeadEnquiryTechnology
+                    {
+                        NewLeadEnquiryID = dto.Id,
+                        TechnologyID = technologyId.ToString(),
+                    };
+                    await _context.TblNewLeadEnquiryTechnology.AddAsync(newLeadEnquiryTechnology);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
             return dto;
         }
 
         public async Task<bool> Delete(string id)
         {
-            return await _repository.Delete(id);
+            var existingData = await _repository.Get(id);
+            if (existingData == null)
+            {
+                throw new ArgumentException($"Lead Enquiry with ID {id} not found.");
+            }
+
+            existingData.IsActive = false; // Soft delete
+            await _repository.Update(existingData);
+            return true;
         }
     }
 }

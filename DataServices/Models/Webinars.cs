@@ -20,7 +20,7 @@ namespace DataServices.Models
         [MinLength(3)]
         [MaxLength(200)]
         [StringLength(200, ErrorMessage = "The Title cannot exceed 200 characters.")]
-        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
+        //[RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? Title { get; set; }
         public string? Speaker { get; set; }
         public string? Status { get; set; }

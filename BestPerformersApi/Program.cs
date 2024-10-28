@@ -1,20 +1,19 @@
+using BestPerformersAPI.Services;
 using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
-using LeadEnquiryApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using NewLeadApi.Services;
 using Serilog;
 using Swashbuckle.AspNetCore.Filters;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
 builder.Host
     .UseSerilog((context, services, configuration) =>
         configuration
@@ -28,21 +27,14 @@ builder.Host
                 rollOnFileSizeLimit: false,            // Do not create new files based on size
                 retainedFileCountLimit: 5,             // Keep only 5 days of logs
                 shared: true                           // Allow log sharing between processes
-            )
+            ) //Removed cuz already defined in appsettings.json
     );
-
 
 builder.Services.AddDbContext<DataBaseContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("sqlcon")));
 
-builder.Services.AddScoped<IRepository<NewLeadEnquiry>, NewLeadEnquiryRepository>();
-builder.Services.AddScoped<INewLeadEnquiryService, NewLeadEnquiryService>();
-builder.Services.AddScoped<IRepository<NewLeadEnquiryTechnology>, NewLeadEnquiryTechnologyRepository>();
-builder.Services.AddScoped<INewLeadEnquiryTechnologyService, NewLeadEnquiryTechnologyService>();
-builder.Services.AddScoped<IRepository<NewLeadEnquiryFollowup>, NewLeadEnquiryFollowupRepository>();
-builder.Services.AddScoped<INewLeadEnquiryFollowupService, NewLeadEnquiryFollowupService>();
-builder.Services.AddScoped<IRepository<NewLeadEnquiryDocuments>, NewLeadEnquiryDocumentsRepository>();
-builder.Services.AddScoped<INewLeadEnquiryDocumentsService, NewLeadEnquiryDocumentsService>();
+builder.Services.AddScoped<IRepository<BestPerformers>, BestPerformersRepository>();
+builder.Services.AddScoped<IBestPerformersService, BestPerformersService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -64,6 +56,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
