@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -44,6 +44,7 @@ namespace DataServices.Models
         public ICollection<POCTeam> POCTeam { get; set; }
         public ICollection<NewLeadEnquiry> NewLeadEnquiry { get; set; }
         public ICollection<NewLeadEnquiryFollowup> NewLeadEnquiryFollowup { get; set; }
+        public ICollection<SuccessStories> SuccessStories { get; set; }
         public ICollection<BestPerformers> BestPerformers { get; set; }
 
     }
@@ -54,27 +55,8 @@ namespace DataServices.Models
         public IFormFile Profile { get; set; }
 
     }
-
-    public class EmployeeDTO : AuditData
-    {
-        public string Name { get; set; }
-        public string? Designation { get; set; }
-        public string EmployeeID { get; set; }
-        public string EmailId { get; set; }
-        public string? Department { get; set; }
-        public string[] Technology {  get; set; } 
-        public string? ReportingTo { get; set; }
-        public DateTime? JoiningDate { get; set; }
-        public DateTime? RelievingDate { get; set; }
-        public string? Projection { get; set; }
-        public string? Password { get; set; }
-        public string? Profile { get; set; }
-        public string PhoneNo { get; set; }
-        public string? Role { get; set; }
-
-    }
-
-    public class EmployeeCreateDTO 
+  
+    public class EmployeeCreateDTO : AuditData
     {
 
         [Required(ErrorMessage = "The Name field is required.")]
@@ -83,6 +65,7 @@ namespace DataServices.Models
         [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
+        [Required]
         [StringLength(36)]
         public string? Designation { get; set; }
         [Required]
@@ -95,6 +78,7 @@ namespace DataServices.Models
         [EmailAddress]
         [EmailDomain("miraclesoft.com", ErrorMessage = "Email must contain 'miraclesoft.com'.")]
         public string EmailId { get; set; }
+        [Required]
         public string? Department { get; set; }
         public string[] Technology { get; set; }
         public string? ReportingTo { get; set; }
@@ -109,8 +93,8 @@ namespace DataServices.Models
         [Required]
         [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be 10 digits long.")]
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Phone number must be numeric.")]
+       [UniquePhoneNumber(ErrorMessage = "Phone number must be unique.")]
         public string PhoneNo { get; set; }
-        [Required]
         public string? Role { get; set; }
 
     }
