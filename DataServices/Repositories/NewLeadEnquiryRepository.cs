@@ -28,29 +28,29 @@ namespace DataServices.Repositories
             return await _context.TblNewLeadEnquiry.FindAsync(id);
         }
 
-        public async Task<NewLeadEnquiry> Create(NewLeadEnquiry _object)
+        public async Task<NewLeadEnquiry> Create(NewLeadEnquiry newLeadEnquiry)
         {
-            _context.TblNewLeadEnquiry.Add(_object);
+            _context.TblNewLeadEnquiry.Add(newLeadEnquiry);
             await _context.SaveChangesAsync();
-            return _object;
+            return newLeadEnquiry;
         }
 
-        public async Task<NewLeadEnquiry> Update(NewLeadEnquiry _object)
+        public async Task<NewLeadEnquiry> Update(NewLeadEnquiry newLeadEnquiry)
         {
-            _context.Entry(_object).State = EntityState.Modified;
+            _context.Entry(newLeadEnquiry).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return _object;
+            return newLeadEnquiry;
         }
 
         public async Task<bool> Delete(string id)
         {
-            var data = await _context.TblNewLeadEnquiry.FindAsync(id);
-            if (data == null)
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry.FindAsync(id);
+            if (newLeadEnquiry == null)
             {
                 return false;
             }
 
-            _context.TblNewLeadEnquiry.Remove(data);
+            _context.TblNewLeadEnquiry.Remove(newLeadEnquiry);
             await _context.SaveChangesAsync();
             return true;
         }

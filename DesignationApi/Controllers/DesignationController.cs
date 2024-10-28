@@ -114,9 +114,26 @@ namespace DesignationApi.Controllers
                 _logger.LogWarning("id: {Id} does not match with the id in the request body", id);
                 return BadRequest("ID mismatch.");
             }
+
+            // Retrieve the department by ID
+            var existingDesignation= await _Service.Get(id);
+
+            if (existingDesignation == null)
+            {
+                _logger.LogWarning("Department with id: {Id} not found", id);
+                return NotFound();
+            }
+
+            // Only admins can reactivate inactive records
+            if (!existingDesignation.IsActive && !User.IsInRole("Admin"))
+            {
+                _logger.LogWarning("User without admin privileges attempted to reactivate department with id: {Id}", id);
+                return Forbid();
+            }
+
             // Check if the updated name is unique (excluding the current department)
-            var existingDepartment = await _Service.GetByName(updateDto.Name);
-            if (existingDepartment != null && existingDepartment.Id != id)
+            var designationByName = await _Service.GetByName(updateDto.Name);
+            if (designationByName != null && designationByName.Id != id)
             {
                 _logger.LogWarning("Designation with name '{Name}' already exists", updateDto.Name);
                 return BadRequest($"Designation with name '{updateDto.Name}' already exists.");
@@ -124,8 +141,12 @@ namespace DesignationApi.Controllers
 
             try
             {
-                var designationDto = new DesignationDTO { Id = id, Name = updateDto.Name };
+                var designationDto = new DesignationDTO { Id = id, Name = updateDto.Name, IsActive = updateDto.IsActive };
                 await _Service.Update(designationDto);
+                //// Update department (including IsActive state)
+                //existingDesignation.Name = updateDto.Name;
+                //existingDesignation.IsActive = updateDto.IsActive; // Admin can change the active state
+                //await _Service.Update(existingDesignation);
             }
             catch (KeyNotFoundException ex)
             {

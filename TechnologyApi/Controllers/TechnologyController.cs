@@ -77,14 +77,6 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Invalid model state for creating technology");
                 return BadRequest(ModelState);
             }
-
-            // Check if technology name is unique
-            var existingTechnology = await _technologyService.GetByName(createDto.Name);
-            if (existingTechnology != null)
-            {
-                _logger.LogWarning("Technology with name '{Name}' already exists", createDto.Name);
-                return BadRequest($"Technology with name '{createDto.Name}' already exists.");
-            }
             _logger.LogInformation("Creating a new technology");
 
             try
@@ -114,9 +106,25 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Technology id mismatch");
                 return BadRequest("Technology ID mismatch");
             }
+
+            // Retrieve the technology by ID
+            var existingTechnology = await _technologyService.Get(id);
+
+            if (existingTechnology == null)
+            {
+                _logger.LogWarning("Technology with id: {Id} not found", id);
+                return NotFound();
+            }
+
+            // Only admins can reactivate inactive records
+            if (!existingTechnology.IsActive && !User.IsInRole("Admin"))
+            {
+                _logger.LogWarning("User without admin privileges attempted to reactivate technology with id: {Id}", id);
+                return Forbid();
+            }
             // Check if technology name is unique
-            var existingTechnology = await _technologyService.GetByName(updateDto.Name);
-            if (existingTechnology != null && existingTechnology.Id != id)
+            var technologyByName = await _technologyService.GetByName(updateDto.Name);
+            if (technologyByName != null && technologyByName.Id != id)
             {
                 _logger.LogWarning("Technology with name '{Name}' already exists", updateDto.Name);
                 return BadRequest($"Technology with name '{updateDto.Name}' already exists.");
@@ -126,7 +134,7 @@ namespace TechnologyApi.Controllers
 
             try
             {
-                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department };
+                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department, IsActive = updateDto.IsActive };
                 await _technologyService.Update(technologyDto);
             }
             catch (KeyNotFoundException ex)
