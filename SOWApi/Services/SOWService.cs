@@ -84,7 +84,7 @@ namespace SOWApi.Services
             if (existingSOW != null)
                 throw new ArgumentException("A Title with the same name already exists.");
 
-            var client = await _context.TblClient
+           /* var client = await _context.TblClient
                .FirstOrDefaultAsync(d => d.Name == _object.Client);
 
             if (client == null)
@@ -100,17 +100,17 @@ namespace SOWApi.Services
                .FirstOrDefaultAsync(d => d.Status == _object.Status);
 
             if (status == null)
-                throw new KeyNotFoundException("SalesContact not found");
+                throw new KeyNotFoundException("SalesContact not found");*/
 
 
             var sow = new SOW
             {
                 Title = _object.Title,
-                ClientId = client?.Id,
-                ProjectId = project?.Id,
+                ClientId = _object.Client,
+                ProjectId = _object.Project,
                 PreparedDate = _object.PreparedDate,
                 SubmittedDate = _object.SubmittedDate,
-                Status = status?.Id,
+                Status =_object.Status,
                 Comments = _object.Comments,
                 IsActive = _object.IsActive,
                 CreatedBy = _object.CreatedBy,
@@ -141,7 +141,7 @@ namespace SOWApi.Services
             if (sow == null)
                 throw new KeyNotFoundException("SOW not found");
 
-            var client = await _context.TblClient
+           /* var client = await _context.TblClient
               .FirstOrDefaultAsync(d => d.Name == _object.Client);
 
             if (client == null)
@@ -157,13 +157,14 @@ namespace SOWApi.Services
                .FirstOrDefaultAsync(d => d.Status == _object.Status);
 
             if (status == null)
-                throw new KeyNotFoundException("SalesContact not found");
+                throw new KeyNotFoundException("SalesContact not found");*/
+
             sow.Title = _object.Title;
-            sow.ClientId = client?.Id;
-            sow.ProjectId = project?.Id;
+            sow.ClientId = _object.Client;
+            sow.ProjectId = _object.Project;
             sow.PreparedDate = _object.PreparedDate;
             sow.SubmittedDate = _object.SubmittedDate;
-            sow.Status = status?.Id;
+            sow.Status = _object.Status;
             sow.Comments = _object.Comments;
             sow.IsActive = _object.IsActive;
             sow.CreatedBy = _object.CreatedBy;

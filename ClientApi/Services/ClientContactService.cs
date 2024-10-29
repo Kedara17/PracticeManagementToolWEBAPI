@@ -79,7 +79,7 @@ namespace ClientApi.Services
             if (existingContactValue != null)
                 throw new ArgumentException("A ContactValue with the same name already exists.");
 
-            var client = await _context.TblClient
+           /* var client = await _context.TblClient
                 .FirstOrDefaultAsync(e => e.Name == clientContactDTO.Client);
 
             if (client == null)
@@ -89,13 +89,13 @@ namespace ClientApi.Services
                .FirstOrDefaultAsync(e => e.TypeName == clientContactDTO.ContactType);
 
             if (contactType == null)
-                throw new KeyNotFoundException("ContactType not found");
+                throw new KeyNotFoundException("ContactType not found");*/
 
             var clientContact = new ClientContact
             {
-                ClientId = client.Id,
+                ClientId = clientContactDTO.Client,
                 ContactValue = clientContactDTO.ContactValue,
-                ContactTypeId = contactType.Id,
+                ContactTypeId = clientContactDTO.ContactType,
                 IsActive = clientContactDTO.IsActive,
                 CreatedBy = clientContactDTO.CreatedBy,
                 CreatedDate = clientContactDTO.CreatedDate,
@@ -124,21 +124,21 @@ namespace ClientApi.Services
             if (clientContact == null)
                 throw new KeyNotFoundException("ClientContact not found");
 
-            var client = await _context.TblClient
-                .FirstOrDefaultAsync(d => d.Name == clientContactDTO.Client);
+            /* var client = await _context.TblClient
+                 .FirstOrDefaultAsync(d => d.Name == clientContactDTO.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
+             if (client == null)
+                 throw new KeyNotFoundException("Client not found");
 
-            var contactType = await _context.TblContactType
-               .FirstOrDefaultAsync(d => d.TypeName == clientContactDTO.ContactType);
+             var contactType = await _context.TblContactType
+                .FirstOrDefaultAsync(d => d.TypeName == clientContactDTO.ContactType);
 
-            if (contactType == null)
-                throw new KeyNotFoundException("ContactType not found");
+             if (contactType == null)
+                 throw new KeyNotFoundException("ContactType not found");*/
 
-            clientContact.ClientId = client.Id;
+            clientContact.ClientId = clientContactDTO.Client;
             clientContact.ContactValue = clientContactDTO.ContactValue;
-            clientContact.ContactTypeId = contactType.Id;
+            clientContact.ContactTypeId = clientContactDTO.ContactType;
             clientContact.IsActive = clientContactDTO.IsActive;
             clientContact.CreatedBy = clientContactDTO.CreatedBy;
             clientContact.CreatedDate = clientContactDTO.CreatedDate;
