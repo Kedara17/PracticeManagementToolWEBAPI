@@ -55,8 +55,27 @@ namespace DataServices.Models
         public IFormFile Profile { get; set; }
 
     }
-  
-    public class EmployeeCreateDTO : AuditData
+
+    public class EmployeeDTO : AuditData
+    {
+        public string Name { get; set; }
+        public string? Designation { get; set; }
+        public string EmployeeID { get; set; }
+        public string EmailId { get; set; }
+        public string? Department { get; set; }
+        public string[] Technology { get; set; }
+        public string? ReportingTo { get; set; }
+        public DateTime? JoiningDate { get; set; }
+        public DateTime? RelievingDate { get; set; }
+        public string? Projection { get; set; }
+        public string? Password { get; set; }
+        public string? Profile { get; set; }
+        public string PhoneNo { get; set; }
+        public string? Role { get; set; }
+
+    }
+
+    public class EmployeeCreateDTO 
     {
 
         [Required(ErrorMessage = "The Name field is required.")]
