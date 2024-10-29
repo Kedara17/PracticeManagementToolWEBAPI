@@ -128,26 +128,6 @@ namespace EmployeeApi.Services
 
             var employee = new Employee();
             
-            /*var department = await _context.TblDepartment
-               .FirstOrDefaultAsync(d => d.Name == empDto.Department);
-            if (department == null)
-                throw new KeyNotFoundException("Department not found");
-
-            var designation = await _context.TblDesignation
-               .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
-            if (designation == null)
-                throw new KeyNotFoundException("Designation not found");
-
-            var reportingTo = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
-            if (reportingTo == null)
-                throw new KeyNotFoundException("ReportingTo not found");
-
-            var role = await _context.TblRole
-               .FirstOrDefaultAsync(r => r.RoleName == empDto.Role);
-            if (role == null)
-                throw new KeyNotFoundException("Role not found");*/
-
             //----------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.Designation))
             {
@@ -255,42 +235,17 @@ namespace EmployeeApi.Services
             }
             //---------------------------------------------------------
             employee.Name = empDto.Name;
-            employee.DesignationId = empDto.Designation;
-            employee.EmployeeID = empDto.EmployeeID;
-            employee.EmailId = empDto.EmailId;
-            employee.DepartmentId = empDto.Department;
-            employee.ReportingTo = empDto.ReportingTo;
-            employee.JoiningDate = empDto.JoiningDate;
-            employee.RelievingDate = empDto.RelievingDate;
-            employee.Projection = empDto.Projection;
-            employee.IsActive = empDto.IsActive;
-            employee.CreatedBy = empDto.CreatedBy;
-            employee.CreatedDate = empDto.CreatedDate;
-            employee.UpdatedBy = empDto.UpdatedBy;
-            employee.UpdatedDate = empDto.UpdatedDate;
-            employee.Password = PasswordHasher.HashPassword(empDto.Password);
-            employee.Profile = empDto.Profile;
-            employee.PhoneNo = empDto.PhoneNo;
-            employee.Role = empDto.Role;
-
-            // Set the Profile property if a file is uploaded
-            if (!string.IsNullOrEmpty(empDto.Profile))
-            {
-                employee.Profile = empDto.Profile;
-            }
-
             employee.EmployeeID = empDto.EmployeeID;
             employee.EmailId = empDto.EmailId;
             employee.IsActive = true;
             employee.CreatedBy = employeeName;
             employee.CreatedDate = DateTime.Now;
             employee.Password = PasswordHasher.HashPassword(empDto.Password);
-
             _context.TblEmployee.Add(employee);
             await _context.SaveChangesAsync();
 
-            empDto.Id = employee.Id;
-
+            empDto.Id = employee.Id;      
+           
             // If Technology is null or contains only empty strings, treat it as null
             if (empDto.Technology == null || empDto.Technology.All(string.IsNullOrWhiteSpace))
             {
@@ -414,51 +369,7 @@ namespace EmployeeApi.Services
                     throw new ArgumentException($"Invalid ReportingTo name. Please enter a valid ReportingTo name.");
                 }
                 employee.ReportingTo = reportingTo.Id;
-            }
-
-            var employee = await _context.TblEmployee.FindAsync(empDto.Id);
-            if (employee == null)
-                throw new KeyNotFoundException("Employee not found");
-
-           /* var department = await _context.TblDepartment
-                .FirstOrDefaultAsync(d => d.Name == empDto.Department);
-            if (department == null)
-                throw new KeyNotFoundException("Department not found");
-
-            var reportingTo = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
-            if (reportingTo == null)
-                throw new KeyNotFoundException("ReportingTo not found");
-
-            var designation = await _context.TblDesignation
-                .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
-            if (designation == null)
-                throw new KeyNotFoundException("Designation not found");
-
-            var role = await _context.TblRole
-               .FirstOrDefaultAsync(r => r.RoleName == empDto.Role);
-            if (role == null)
-                throw new KeyNotFoundException("Role not found");*/
-
-            employee.Name = empDto.Name;
-            employee.DesignationId = empDto.Designation;
-            employee.EmployeeID = empDto.EmployeeID;
-            employee.EmailId = empDto.EmailId;
-            employee.DepartmentId = empDto.Department;
-            employee.ReportingTo = empDto.ReportingTo;
-            employee.JoiningDate = empDto.JoiningDate;
-            employee.RelievingDate = empDto.RelievingDate;
-            employee.Projection = empDto.Projection;
-            employee.IsActive = empDto.IsActive;
-            employee.CreatedBy = empDto.CreatedBy;
-            employee.CreatedDate = empDto.CreatedDate;
-            employee.UpdatedBy = empDto.UpdatedBy;
-            employee.UpdatedDate = empDto.UpdatedDate;
-            employee.Password = PasswordHasher.HashPassword(empDto.Password);
-            employee.Profile = empDto.Profile;
-            employee.PhoneNo = empDto.PhoneNo;
-            employee.Role = empDto.Role;
-
+            }           
             else
             {
                 employee.ReportingTo = null;
@@ -521,7 +432,7 @@ namespace EmployeeApi.Services
             }
             else
             {
-                employee.ReportingTo = null;
+                employee.Role = null;
             }
             //---------------------------------------------------------
             employee.Name = empDto.Name;
