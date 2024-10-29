@@ -78,14 +78,14 @@ namespace POCAPI.Services
             if (existingPOC != null)
                 throw new ArgumentException("A POC with the same name already exists.");
 
-            var client = await _context.TblClient
+           /* var client = await _context.TblClient
                 .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
 
             if (client == null)
-                throw new KeyNotFoundException("Client not found");
+                throw new KeyNotFoundException("Client not found");*/
 
             poc.Title = pocDto.Title;
-            poc.ClientId = client.Id;
+            poc.ClientId = pocDto.Client;
             poc.Status = pocDto?.Status;
             poc.TargetDate = pocDto.TargetDate;
             poc.CompletedDate = pocDto.CompletedDate;
@@ -169,14 +169,14 @@ namespace POCAPI.Services
             if (pocData == null)
                 throw new KeyNotFoundException("Poc not found");
 
-            var client = await _context.TblClient
+          /*  var client = await _context.TblClient
                 .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
 
             if (client == null)
-                throw new KeyNotFoundException("Author not found");
+                throw new KeyNotFoundException("Author not found");*/
 
             poc.Title = pocDto.Title;
-            poc.ClientId = client?.Id;
+            poc.ClientId = pocDto.Client;
             poc.Status = pocDto.Status;
             poc.TargetDate = pocDto.TargetDate;
             poc.CompletedDate = pocDto.CompletedDate;

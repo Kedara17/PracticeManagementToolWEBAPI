@@ -70,7 +70,7 @@ namespace SOWApi.Services
         {
             var sowRequirement = new SOWRequirement();
 
-            var sow = await _context.TblSOW
+            /*var sow = await _context.TblSOW
               .FirstOrDefaultAsync(d => d.Title == _object.SOW);
 
             if (sow == null)
@@ -80,11 +80,11 @@ namespace SOWApi.Services
                .FirstOrDefaultAsync(d => d.Name == _object.Designation);
 
             if (designation == null)
-                throw new KeyNotFoundException("Designation not found");
+                throw new KeyNotFoundException("Designation not found");*/
 
 
-            sowRequirement.SOWId = sow?.Id;
-            sowRequirement.DesignationId = designation?.Id;
+            sowRequirement.SOWId = _object.SOW;
+            sowRequirement.DesignationId = _object.Designation;
             sowRequirement.TeamSize = _object.TeamSize;
             sowRequirement.IsActive = _object.IsActive;
             sowRequirement.CreatedBy = _object.CreatedBy;
@@ -122,7 +122,7 @@ namespace SOWApi.Services
             if (sowRequirement == null)
                 throw new KeyNotFoundException("SOWRequirement not found");
 
-            var sow = await _context.TblSOW
+           /* var sow = await _context.TblSOW
               .FirstOrDefaultAsync(d => d.Title == _object.SOW);
 
             if (sow == null)
@@ -132,10 +132,10 @@ namespace SOWApi.Services
                .FirstOrDefaultAsync(d => d.Name == _object.Designation);
 
             if (designation == null)
-                throw new KeyNotFoundException("Designation not found");
+                throw new KeyNotFoundException("Designation not found");*/
 
-            sowRequirement.SOWId = sow?.Id;
-            sowRequirement.DesignationId = designation?.Id;
+            sowRequirement.SOWId = _object.SOW;
+            sowRequirement.DesignationId = _object.Designation;
             sowRequirement.TeamSize = _object.TeamSize;
             sowRequirement.IsActive = _object.IsActive;
             sowRequirement.CreatedBy = _object.CreatedBy;

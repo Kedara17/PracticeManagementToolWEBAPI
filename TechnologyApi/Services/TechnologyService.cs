@@ -79,7 +79,7 @@ namespace TechnologyApi.Services
             if (!string.IsNullOrWhiteSpace(technologyDto.Department))
             {
                 // Look for the department in the database
-                var department = await _context.TblDepartment
+                /*var department = await _context.TblDepartment
                     .FirstOrDefaultAsync(d => d.Name == technologyDto.Department);
 
                 // If department is not found, throw an exception and provide valid department names
@@ -87,8 +87,8 @@ namespace TechnologyApi.Services
                 {
                     throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
                 }
-
-                technology.DepartmentId = department.Id;
+*/
+                technology.DepartmentId = technologyDto.Id;
             }
             else
             {
@@ -98,6 +98,7 @@ namespace TechnologyApi.Services
             var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
 
             technology.Name = technologyDto.Name;
+            technology.DepartmentId = technologyDto.Department;
             technology.IsActive = true;
             technology.CreatedBy = employeeName;
             technology.CreatedDate = DateTime.Now;

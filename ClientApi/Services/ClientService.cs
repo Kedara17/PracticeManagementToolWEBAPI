@@ -83,17 +83,17 @@ namespace ClientApi.Services
             if (existingClient != null)
                 throw new ArgumentException("A client with the same name already exists.");
 
-            var salesEmployee = await _context.TblEmployee
+            /*var salesEmployee = await _context.TblEmployee
                 .FirstOrDefaultAsync(d => d.Name == _object.SalesEmployee);
 
             if (salesEmployee == null)
-                throw new KeyNotFoundException("SalesEmployee not found");
+                throw new KeyNotFoundException("SalesEmployee not found");*/
 
             var client = new Client
             {
                 Name = _object.Name,
                 LineofBusiness = _object.LineofBusiness,
-                SalesEmployee = salesEmployee.Id,
+                SalesEmployee = _object.SalesEmployee,
                 Country = _object.Country,
                 City = _object.City,
                 State = _object.State,
@@ -126,15 +126,15 @@ namespace ClientApi.Services
             if (client == null)
                 throw new KeyNotFoundException("Client not found");
 
-            var salesEmployee = await _context.TblEmployee
+            /*var salesEmployee = await _context.TblEmployee
                 .FirstOrDefaultAsync(d => d.Name == _object.SalesEmployee);
 
             if (salesEmployee == null)
-                throw new KeyNotFoundException("SalesEmployee not found");
+                throw new KeyNotFoundException("SalesEmployee not found");*/
 
             client.Name = _object.Name;
             client.LineofBusiness = _object.LineofBusiness;
-            client.SalesEmployee = salesEmployee.Id;
+            client.SalesEmployee = _object.SalesEmployee;
             client.Country = _object.Country;
             client.City = _object.City;
             client.State = _object.State;

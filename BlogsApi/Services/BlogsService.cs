@@ -172,16 +172,16 @@ namespace BlogsApi.Services
 
         public async Task<BlogsDTO> Add(BlogsDTO _object)
         {
-            var author = await _context.TblEmployee
+          /*  var author = await _context.TblEmployee
                 .FirstOrDefaultAsync(d => d.Name == _object.Author);
 
             if (author == null)
-                throw new KeyNotFoundException("Author not found");
+                throw new KeyNotFoundException("Author not found");*/
 
             var blog = new Blogs
             {
                 Title = _object.Title,
-                Author = author.Id,
+                Author = _object.Author,
                 Status = _object?.Status,
                 TargetDate = _object.TargetDate,
                 CompletedDate = _object.CompletedDate,
@@ -204,7 +204,7 @@ namespace BlogsApi.Services
         public async Task<BlogsDTO> Update(BlogsDTO _object, string userRole)
         {
             var blog = await _context.TblBlogs.FindAsync(_object.Id) ?? throw new KeyNotFoundException("Blog not found");
-            var author = await _context.TblEmployee.FirstOrDefaultAsync(d => d.Name == _object.Author) ?? throw new KeyNotFoundException("Author not found");
+           /* var author = await _context.TblEmployee.FirstOrDefaultAsync(d => d.Name == _object.Author) ?? throw new KeyNotFoundException("Author not found");*/
 
             // Check if the user is trying to reactivate the blog
             if (blog.IsActive == false && _object.IsActive == true)
@@ -216,7 +216,7 @@ namespace BlogsApi.Services
             }
 
             blog.Title = _object.Title;
-            blog.Author = author?.Id;
+            blog.Author = _object.Author;
             blog.Status = _object.Status;
             blog.TargetDate = _object.TargetDate;
             blog.CompletedDate = _object.CompletedDate;

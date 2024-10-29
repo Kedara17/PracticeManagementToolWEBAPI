@@ -125,7 +125,7 @@ namespace EmployeeApi.Services
 
             var employee = new Employee();
             
-            var department = await _context.TblDepartment
+            /*var department = await _context.TblDepartment
                .FirstOrDefaultAsync(d => d.Name == empDto.Department);
             if (department == null)
                 throw new KeyNotFoundException("Department not found");
@@ -143,14 +143,14 @@ namespace EmployeeApi.Services
             var role = await _context.TblRole
                .FirstOrDefaultAsync(r => r.RoleName == empDto.Role);
             if (role == null)
-                throw new KeyNotFoundException("Role not found");
+                throw new KeyNotFoundException("Role not found");*/
 
             employee.Name = empDto.Name;
-            employee.DesignationId = designation.Id;
+            employee.DesignationId = empDto.Designation;
             employee.EmployeeID = empDto.EmployeeID;
             employee.EmailId = empDto.EmailId;
-            employee.DepartmentId = department.Id;
-            employee.ReportingTo = reportingTo.Id;
+            employee.DepartmentId = empDto.Department;
+            employee.ReportingTo = empDto.ReportingTo;
             employee.JoiningDate = empDto.JoiningDate;
             employee.RelievingDate = empDto.RelievingDate;
             employee.Projection = empDto.Projection;
@@ -162,7 +162,7 @@ namespace EmployeeApi.Services
             employee.Password = PasswordHasher.HashPassword(empDto.Password);
             employee.Profile = empDto.Profile;
             employee.PhoneNo = empDto.PhoneNo;
-            employee.Role = role.Id;
+            employee.Role = empDto.Role;
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(empDto.Profile))
@@ -280,7 +280,7 @@ namespace EmployeeApi.Services
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
 
-            var department = await _context.TblDepartment
+           /* var department = await _context.TblDepartment
                 .FirstOrDefaultAsync(d => d.Name == empDto.Department);
             if (department == null)
                 throw new KeyNotFoundException("Department not found");
@@ -298,14 +298,14 @@ namespace EmployeeApi.Services
             var role = await _context.TblRole
                .FirstOrDefaultAsync(r => r.RoleName == empDto.Role);
             if (role == null)
-                throw new KeyNotFoundException("Role not found");
+                throw new KeyNotFoundException("Role not found");*/
 
             employee.Name = empDto.Name;
-            employee.DesignationId = designation.Id;
+            employee.DesignationId = empDto.Designation;
             employee.EmployeeID = empDto.EmployeeID;
             employee.EmailId = empDto.EmailId;
-            employee.DepartmentId = department.Id;
-            employee.ReportingTo = reportingTo.Id;
+            employee.DepartmentId = empDto.Department;
+            employee.ReportingTo = empDto.ReportingTo;
             employee.JoiningDate = empDto.JoiningDate;
             employee.RelievingDate = empDto.RelievingDate;
             employee.Projection = empDto.Projection;
@@ -317,7 +317,7 @@ namespace EmployeeApi.Services
             employee.Password = PasswordHasher.HashPassword(empDto.Password);
             employee.Profile = empDto.Profile;
             employee.PhoneNo = empDto.PhoneNo;
-            employee.Role = role.Id;
+            employee.Role = empDto.Role;
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(empDto.Profile))

@@ -70,7 +70,7 @@ namespace ProjectApi.Services
 
         public async Task<ProjectEmployeeDTO> Add(ProjectEmployeeDTO _object)
         {
-            var project = await _context.TblProject
+          /*  var project = await _context.TblProject
                .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
 
             if (project == null)
@@ -80,12 +80,12 @@ namespace ProjectApi.Services
                .FirstOrDefaultAsync(d => d.Name == _object.Employee);
 
             if (employee == null)
-                throw new KeyNotFoundException("Employee not found");
+                throw new KeyNotFoundException("Employee not found");*/
 
             var projectEmployee = new ProjectEmployee
             {
-                ProjectId = project?.Id,
-                EmployeeId = employee?.Id,
+                ProjectId = _object.Project,
+                EmployeeId = _object.Employee,
                 StartDate = _object.StartDate,
                 EndDate = _object.EndDate,
                 IsActive = _object.IsActive,
@@ -109,7 +109,7 @@ namespace ProjectApi.Services
             if (projectEmployee == null)
                 throw new KeyNotFoundException("ProjectEmployee not found");
 
-            var project = await _context.TblProject
+           /* var project = await _context.TblProject
               .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
 
             if (project == null)
@@ -119,11 +119,11 @@ namespace ProjectApi.Services
                 .FirstOrDefaultAsync(d => d.Name == _object.Employee);
 
             if (employee == null)
-                throw new KeyNotFoundException("employee not found");
+                throw new KeyNotFoundException("employee not found");*/
 
 
-            projectEmployee.ProjectId = project?.Id;
-            projectEmployee.EmployeeId = employee?.Id;
+            projectEmployee.ProjectId = _object.Project;
+            projectEmployee.EmployeeId = _object.Employee;
             projectEmployee.IsActive = _object.IsActive;
             projectEmployee.CreatedBy = _object.CreatedBy;
             projectEmployee.CreatedDate = _object.CreatedDate;

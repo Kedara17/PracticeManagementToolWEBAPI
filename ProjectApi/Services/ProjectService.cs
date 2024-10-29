@@ -91,7 +91,7 @@ namespace ProjectApi.Services
 
             var project = new Project();
 
-            var client = await _context.TblClient
+           /* var client = await _context.TblClient
                .FirstOrDefaultAsync(d => d.Name == projDto.Client);
 
             if (client == null)
@@ -113,13 +113,13 @@ namespace ProjectApi.Services
                .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
 
             if (pmo == null)
-                throw new KeyNotFoundException("PMO not found");
+                throw new KeyNotFoundException("PMO not found");*/
 
-            project.ClientId = client.Id;
+            project.ClientId = projDto.Client;
             project.ProjectName = projDto.ProjectName;
-            project.TechnicalProjectManager = technicalProjectManager.Id;
-            project.SalesContact = salesContact.Id;
-            project.PMO = pmo.Id;
+            project.TechnicalProjectManager = projDto.TechnicalProjectManager;
+            project.SalesContact = projDto.SalesContact;
+            project.PMO = projDto.PMO;
             project.SOWSubmittedDate = projDto.SOWSubmittedDate;
             project.SOWSignedDate = projDto.SOWSignedDate;
             project.SOWValidTill = projDto.SOWValidTill;
@@ -167,7 +167,7 @@ namespace ProjectApi.Services
             if (project == null)
                 throw new KeyNotFoundException("Project not found");
 
-            var client = await _context.TblClient
+          /*  var client = await _context.TblClient
               .FirstOrDefaultAsync(d => d.Name == projDto.Client);
 
             if (client == null)
@@ -189,13 +189,13 @@ namespace ProjectApi.Services
                .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
 
             if (pmo == null)
-                throw new KeyNotFoundException("PMO not found");
+                throw new KeyNotFoundException("PMO not found");*/
 
-            project.ClientId = client.Id;
+            project.ClientId = projDto.Client;
             project.ProjectName = projDto.ProjectName;
-            project.TechnicalProjectManager = technicalProjectManager.Id;
-            project.SalesContact = salesContact.Id;
-            project.PMO = pmo.Id;
+            project.TechnicalProjectManager = projDto.TechnicalProjectManager;
+            project.SalesContact = projDto.SalesContact;
+            project.PMO = projDto.PMO;
             project.SOWSubmittedDate = projDto.SOWSubmittedDate;
             project.SOWSignedDate = projDto.SOWSignedDate;
             project.SOWValidTill = projDto.SOWValidTill;

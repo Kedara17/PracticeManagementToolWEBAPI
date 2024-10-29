@@ -66,7 +66,7 @@ namespace SOWApi.Services
         public async Task<SOWProposedTeamDTO> Add(SOWProposedTeamDTO _object)
         {
 
-            var sowRequirement = await _context.TblSOWRequirement
+           /* var sowRequirement = await _context.TblSOWRequirement
                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
             if (sowRequirement == null)
@@ -76,13 +76,13 @@ namespace SOWApi.Services
                .FirstOrDefaultAsync(d => d.Name == _object.Employee);
 
             if (employee == null)
-                throw new KeyNotFoundException("Employee not found");
+                throw new KeyNotFoundException("Employee not found");*/
 
 
             var sowProposedTeam = new SOWProposedTeam
             {
-                SOWRequirementId = sowRequirement?.Id,
-                EmployeeId = employee?.Id,
+                SOWRequirementId = _object.SOWRequirement,
+                EmployeeId = _object.Employee,
                 IsActive = _object.IsActive,
                 CreatedBy = _object.CreatedBy,
                 CreatedDate = _object.CreatedDate,
@@ -104,7 +104,7 @@ namespace SOWApi.Services
             if (sowProposedTeam == null)
                 throw new KeyNotFoundException("sowProposedTeam not found");
 
-            var sowRequirement = await _context.TblSOWRequirement
+           /* var sowRequirement = await _context.TblSOWRequirement
                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
             if (sowRequirement == null)
@@ -115,9 +115,9 @@ namespace SOWApi.Services
 
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
-
-            sowProposedTeam.SOWRequirementId = sowRequirement?.Id;
-            sowProposedTeam.EmployeeId = employee?.Id;
+*/
+            sowProposedTeam.SOWRequirementId = _object.SOWRequirement;
+            sowProposedTeam.EmployeeId = _object.Employee;
             sowProposedTeam.IsActive = _object.IsActive;
             sowProposedTeam.CreatedBy = _object.CreatedBy;
             sowProposedTeam.CreatedDate = _object.CreatedDate;

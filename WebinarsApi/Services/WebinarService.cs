@@ -81,17 +81,18 @@ namespace WebinarsApi.Services
             if (existingWebinar != null)
                 throw new ArgumentException("A Webinar with the same name already exists.");
 
-            var employee = await _context.TblEmployee
+           /* var employee = await _context.TblEmployee
                .FirstOrDefaultAsync(d => d.Name == _object.Speaker);
 
             if (employee == null)
-                throw new KeyNotFoundException("Speaker not found");
+                throw new KeyNotFoundException("Speaker not found");*/
 
             var webinars = new Webinars
             {
 
                 Title = _object.Title,
-                Speaker = employee?.Id,
+               /* Speaker = employee?.Id,*/
+               Speaker = _object.Speaker,
                 Status = _object.Status,
                 WebinarDate = _object.WebinarDate,
                 NumberOfAudience = _object.NumberOfAudience,

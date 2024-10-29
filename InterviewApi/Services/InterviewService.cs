@@ -78,7 +78,7 @@ namespace InterviewApi.Services
 
         public async Task<InterviewsDTO> Add(InterviewsDTO _object)
         {
-            var sowRequirement = await _context.TblSOWRequirement
+           /* var sowRequirement = await _context.TblSOWRequirement
                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
             if (sowRequirement == null)
@@ -94,18 +94,18 @@ namespace InterviewApi.Services
                .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
 
             if (recruiter == null)
-                throw new KeyNotFoundException("SalesContact not found");
+                throw new KeyNotFoundException("SalesContact not found");*/
 
 
             var interviews = new Interviews
             {
-                SOWRequirementId = sowRequirement?.Id,
+                SOWRequirementId = _object.SOWRequirement,
                 Name = _object.Name,
                 InterviewDate = _object.InterviewDate,
                 YearsOfExperience = _object.YearsOfExperience,
-                StatusId = status?.Id,
+                StatusId = _object.Status,
                 On_Boarding = _object.On_Boarding,
-                Recruiter = recruiter?.Id,
+                Recruiter = _object.Recruiter,
                 IsActive = _object.IsActive,
                 CreatedBy = _object.CreatedBy,
                 CreatedDate = _object.CreatedDate,
@@ -127,7 +127,7 @@ namespace InterviewApi.Services
             if (interview == null)
                 throw new KeyNotFoundException("Interview not found");
 
-            var sowRequirement = await _context.TblSOWRequirement
+           /* var sowRequirement = await _context.TblSOWRequirement
                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
             if (sowRequirement == null)
@@ -143,15 +143,15 @@ namespace InterviewApi.Services
                .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
 
             if (recruiter == null)
-                throw new KeyNotFoundException("SalesContact not found");
+                throw new KeyNotFoundException("SalesContact not found");*/
 
-            interview.SOWRequirementId = sowRequirement?.Id;
+            interview.SOWRequirementId = _object.SOWRequirement;
             interview.Name = _object.Name;
             interview.InterviewDate = _object.InterviewDate;
             interview.YearsOfExperience = _object.YearsOfExperience;
-            interview.StatusId = status?.Id;
+            interview.StatusId = _object.Status;
             interview.On_Boarding = _object.On_Boarding;
-            interview.Recruiter = recruiter?.Id;
+            interview.Recruiter = _object.Recruiter;
             interview.IsActive = _object.IsActive;
             interview.CreatedBy = _object.CreatedBy;
             interview.CreatedDate = _object.CreatedDate;
