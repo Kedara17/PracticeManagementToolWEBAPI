@@ -26,7 +26,7 @@ namespace DataServices.Models
         public string Name { get; set; }
         public string? Department { get; set; }
     }
-    public class TechnologyBaseDTO
+    public class TechnologyCreateDTO
     {
         [Required]
         [MinLength(3)]
@@ -36,11 +36,9 @@ namespace DataServices.Models
         public string Name { get; set; }
         public string? Department { get; set; }
     }
-    public class TechnologyCreateDTO : TechnologyBaseDTO
-    {
-    }
-    public class TechnologyUpdateDTO : TechnologyBaseDTO
+    public class TechnologyUpdateDTO : TechnologyCreateDTO
     {
         public string Id { get; set; }
+        public bool IsActive { get; set; }
     }
 }

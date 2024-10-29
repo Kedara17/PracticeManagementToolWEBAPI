@@ -95,8 +95,17 @@ namespace NewLeadApi.Services
 
         // Delete a followup by id
         public async Task<bool> Delete(string id)
-        {
-            return await _repository.Delete(id);
+        { 
+            var followup = await _repository.Get(id);
+            if (followup == null)
+            {
+                throw new KeyNotFoundException($"FollowUp with ID {id} not found.");
+            }
+
+            followup.IsActive = false; // Soft delete
+            await _repository.Update(followup); // Update the record
+
+            return true;
         }
     }
 }

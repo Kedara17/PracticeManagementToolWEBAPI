@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace DataServices.Models
 {
-    public class NewLeadEnquiryDocuments : NewLeadEnquiryDocumentsDTO
+    public class NewLeadEnquiryDocuments : AuditData
     {
         [ForeignKey("NewLeadEnquiryID")]
-        public NewLeadEnquiry NewLeadEnquiry { get; set; }
+        public NewLeadEnquiry NewLeadEnquirys { get; set; }
+        public string NewLeadEnquiryID { get; set; }
+        public string FileName { get; set; }
+
+       
     }
     public class NewLeadEnquiryDocumentsDTO : AuditData
     {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -44,7 +44,9 @@ namespace DataServices.Models
         public ICollection<POCTeam> POCTeam { get; set; }
         public ICollection<NewLeadEnquiry> NewLeadEnquiry { get; set; }
         public ICollection<NewLeadEnquiryFollowup> NewLeadEnquiryFollowup { get; set; }
-
+        public ICollection<Certifications> Certifications { get; set; }
+        public ICollection<SuccessStories> SuccessStories { get; set; }
+        public ICollection<BestPerformers> BestPerformers { get; set; }
     }
     public class EmployeeProfileDTO 
     {
@@ -53,8 +55,8 @@ namespace DataServices.Models
         public IFormFile Profile { get; set; }
 
     }
-
-    public class EmployeeDTO : AuditData
+  
+    public class EmployeeCreateDTO : AuditData
     {
 
         [Required(ErrorMessage = "The Name field is required.")]
@@ -63,8 +65,8 @@ namespace DataServices.Models
         [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
-        [StringLength(36)]
         [Required]
+        [StringLength(36)]
         public string? Designation { get; set; }
         [Required]
         [MinLength(4)]
@@ -78,11 +80,12 @@ namespace DataServices.Models
         public string EmailId { get; set; }
         [Required]
         public string? Department { get; set; }
-        public string[] Technology {  get; set; } 
+        public string[] Technology { get; set; }
         public string? ReportingTo { get; set; }
         public DateTime? JoiningDate { get; set; }
         public DateTime? RelievingDate { get; set; }
         public string? Projection { get; set; }
+        [Required]
         // Password Validation: minimum length of 8 characters with at least 1 uppercase, 1 lowercase, 1 digit, and 1 special character
         [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$", ErrorMessage = "Password must be at least 8 characters long and contain one uppercase letter, one lowercase letter, one number, and one special character.")]
         public string? Password { get; set; }
@@ -90,11 +93,16 @@ namespace DataServices.Models
         [Required]
         [StringLength(10, MinimumLength = 10, ErrorMessage = "Phone number must be 10 digits long.")]
         [RegularExpression(@"^[0-9]+$", ErrorMessage = "Phone number must be numeric.")]
-        [UniquePhoneNumber(ErrorMessage = "Phone number must be unique.")]
+       [UniquePhoneNumber(ErrorMessage = "Phone number must be unique.")]
         public string PhoneNo { get; set; }
         public string? Role { get; set; }
 
     }
+    public class EmployeeUpdateDTO : EmployeeCreateDTO
+    {
+        public string Id { get; set; }
+    }
+
     // Custom Email Domain Validation Attribute
     public class EmailDomainAttribute : ValidationAttribute
     {

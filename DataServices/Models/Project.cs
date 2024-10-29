@@ -1,4 +1,4 @@
-﻿using DataServices.Models;
+using DataServices.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -23,6 +23,8 @@ namespace DataServices.Models
         public ICollection<SOW> SOWs { get; set; }
         public ICollection<ProjectEmployee> ProjectEmployees { get; set; }
         public ICollection<ProjectTechnology> Technology { get; set; }
+        public ICollection<SuccessStories> SuccessStories { get; set; }
+        public ICollection<BestPerformers> BestPerformers { get; set; }
     }
     public class ProjectDTO : AuditData
     {

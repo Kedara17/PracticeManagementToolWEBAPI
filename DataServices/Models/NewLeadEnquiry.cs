@@ -20,10 +20,21 @@ namespace DataServices.Models
         public ICollection<NewLeadEnquiryDocuments> NewLeadEnquiryDocuments { get; set; }
     }
 
+    public class NewLeadEnquiryFileNameDTO
+    {
+        public string? Id { get; set; }
+        public IFormFile FileName { get; set; }
+
+    }
+
     public class NewLeadEnquiryDTO : AuditData
     {
         public string? EmployeeID { get; set; }
         public string? AssignTo { get; set; }
+        [NotMapped]
+        public string[] Technology { get; set; }
+        [NotMapped]
+        public string FileName { get; set; }
         public string? CompanyName { get; set; }
         public string? CompanyRepresentative { get; set; }
         public string? RepresentativeDesignation { get; set; }
@@ -31,5 +42,6 @@ namespace DataServices.Models
         public DateTime? EnquiryDate { get; set; }
         public string? Status { get; set; }
         public string? Comments { get; set; }
+
     }
 }
