@@ -191,5 +191,17 @@ namespace SOWApi.Services
             await _repository.Update(existingsow); // Save changes
             return true;
         }
+
+        public async Task Activate(string id)
+        {
+            var sow = await _context.TblSOW.FindAsync(id);
+
+            if (sow == null)
+                throw new KeyNotFoundException("Sow not found");
+
+            sow.IsActive = true;
+            _context.Entry(sow).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
     }
 }

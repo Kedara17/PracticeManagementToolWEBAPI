@@ -9,5 +9,6 @@ namespace WebinarsApi.Services
         public Task<WebinarsDTO> Add(WebinarsDTO _object);
         public Task<WebinarsDTO> Update(WebinarsDTO _object);
         public Task<bool> Delete(string id);
+        public Task Activate(string id);
     }
 }

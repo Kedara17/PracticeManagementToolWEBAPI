@@ -166,6 +166,18 @@ namespace ClientApi.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
+        public async Task Activate(string id)
+        {
+            var client = await _context.TblClient.FindAsync(id);
+
+            if (client == null)
+                throw new KeyNotFoundException("Client not found");
+
+            client.IsActive = true;
+            _context.Entry(client).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
     }
 }
 

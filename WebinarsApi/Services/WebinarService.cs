@@ -160,5 +160,17 @@ namespace WebinarsApi.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
+
+        public async Task Activate(string id)
+        {
+            var webinar = await _context.TblWebinars.FindAsync(id);
+
+            if (webinar == null)
+                throw new KeyNotFoundException("Webinar not found");
+
+            webinar.IsActive = true;
+            _context.Entry(webinar).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -253,5 +253,18 @@ namespace ProjectApi.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
+
+        public async Task Activate(string id)
+        {
+            var project = await _context.TblProject.FindAsync(id);
+
+            if (project == null)
+                throw new KeyNotFoundException("Project not found");
+
+            project.IsActive = true;
+            _context.Entry(project).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

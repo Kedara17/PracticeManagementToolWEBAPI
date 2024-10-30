@@ -178,5 +178,17 @@ namespace InterviewApi.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
+
+        public async Task Activate(string id)
+        {
+            var interview = await _context.TblInterviews.FindAsync(id);
+
+            if (interview == null)
+                throw new KeyNotFoundException("Interview not found");
+
+            interview.IsActive = true;
+            _context.Entry(interview).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
     }
 }
