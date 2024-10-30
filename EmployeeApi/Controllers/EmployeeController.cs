@@ -69,7 +69,7 @@ namespace EmployeeApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEmployee([FromBody] EmployeeCreateDTO createDto)
         {
             if (!ModelState.IsValid)
@@ -125,7 +125,7 @@ namespace EmployeeApi.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(string id, [FromBody] EmployeeUpdateDTO updateDto)
         {
             if (!ModelState.IsValid)
@@ -185,6 +185,23 @@ namespace EmployeeApi.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpPatch("{id}/activate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Activate(string id)
+        {
+            _logger.LogInformation("Activating Employee with id: {Id}", id);
+            try
+            {
+                await _employeeService.Activate(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
+            }
         }
     }
 }

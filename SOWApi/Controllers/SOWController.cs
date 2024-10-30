@@ -133,5 +133,22 @@ namespace SOWApi.Controllers
 
             return NoContent();
         }
+
+        [HttpPatch("{id}/activate")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Activate(string id)
+        {
+            _logger.LogInformation("Activating SOW with id: {Id}", id);
+            try
+            {
+                await _Service.Activate(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
+            }
+        }
     }
 }

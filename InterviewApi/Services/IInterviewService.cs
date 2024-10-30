@@ -9,5 +9,6 @@ namespace InterviewApi.Services
         public Task<InterviewsDTO> Add(InterviewsDTO interview);
         public Task<InterviewsDTO> Update(InterviewsDTO interview);
         public Task<bool> Delete(string id);
+        public Task Activate(string id);
     }
 }

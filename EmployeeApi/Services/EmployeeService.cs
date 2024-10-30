@@ -500,5 +500,17 @@ namespace EmployeeApi.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
+
+        public async Task Activate(string id)
+        {
+            var employee = await _context.TblEmployee.FindAsync(id);
+
+            if (employee == null)
+                throw new KeyNotFoundException("Employee not found");
+
+            employee.IsActive = true;
+            _context.Entry(employee).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+        }
     }
 }

@@ -123,7 +123,7 @@ namespace TechnologyApi.Controllers
                 return Forbid();
             }
             // Check if technology name is unique
-            var technologyByName = await _technologyService.GetByName(updateDto.Name);
+            var technologyByName = await _technologyService.Get(updateDto.Name);
             if (technologyByName != null && technologyByName.Id != id)
             {
                 _logger.LogWarning("Technology with name '{Name}' already exists", updateDto.Name);

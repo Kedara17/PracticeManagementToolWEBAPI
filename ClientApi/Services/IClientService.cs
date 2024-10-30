@@ -9,6 +9,7 @@ namespace ClientServices.Services
         public Task<ClientDTO> Add(ClientDTO client);
         public Task<ClientDTO> Update(ClientDTO client);
         public Task<bool> Delete(string id);
+        public Task Activate(string id);
 
     }
 
