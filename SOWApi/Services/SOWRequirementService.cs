@@ -82,10 +82,47 @@ namespace SOWApi.Services
             if (designation == null)
                 throw new KeyNotFoundException("Designation not found");*/
 
+            if (!string.IsNullOrWhiteSpace(_object.SOW))
+            {
+                var sowExists = await _context.TblSOW
+                    .AnyAsync(d => d.Id == _object.SOW);
+                if (!sowExists)
+                    throw new ArgumentException("The specified sow does not exist.");
 
-            sowRequirement.SOWId = _object.SOW;
+                sowRequirement.SOWId = _object.SOW;
+            }
+            else
+            {
+                sowRequirement.SOWId = null;
+            }
+            //___________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Designation))
+            {
+                var designationExists = await _context.TblDesignation
+                    .AnyAsync(d => d.Id == _object.Designation);
+                if (!designationExists)
+                    throw new ArgumentException("The specified designation does not exist.");
+
+                sowRequirement.DesignationId = _object.Designation;
+            }
+            else
+            {
+                sowRequirement.DesignationId = null;
+            }
+            //_____________________________________________________
+            if (_object.TeamSize.HasValue && _object.TeamSize > 0)
+            {
+                sowRequirement.TeamSize = _object.TeamSize.Value;
+            }
+            else
+            {
+                sowRequirement.TeamSize = null;
+            }
+
+
+            /*sowRequirement.SOWId = _object.SOW;
             sowRequirement.DesignationId = _object.Designation;
-            sowRequirement.TeamSize = _object.TeamSize;
+            sowRequirement.TeamSize = _object.TeamSize;*/
             sowRequirement.IsActive = _object.IsActive;
             sowRequirement.CreatedBy = _object.CreatedBy;
             sowRequirement.CreatedDate = _object.CreatedDate;
@@ -122,21 +159,59 @@ namespace SOWApi.Services
             if (sowRequirement == null)
                 throw new KeyNotFoundException("SOWRequirement not found");
 
-           /* var sow = await _context.TblSOW
-              .FirstOrDefaultAsync(d => d.Title == _object.SOW);
+            /* var sow = await _context.TblSOW
+               .FirstOrDefaultAsync(d => d.Title == _object.SOW);
 
-            if (sow == null)
-                throw new KeyNotFoundException("Sow not found");
+             if (sow == null)
+                 throw new KeyNotFoundException("Sow not found");
 
-            var designation = await _context.TblDesignation
-               .FirstOrDefaultAsync(d => d.Name == _object.Designation);
+             var designation = await _context.TblDesignation
+                .FirstOrDefaultAsync(d => d.Name == _object.Designation);
 
-            if (designation == null)
-                throw new KeyNotFoundException("Designation not found");*/
+             if (designation == null)
+                 throw new KeyNotFoundException("Designation not found");*/
 
-            sowRequirement.SOWId = _object.SOW;
+            if (!string.IsNullOrWhiteSpace(_object.SOW))
+            {
+                var sowExists = await _context.TblSOW
+                    .AnyAsync(d => d.Id == _object.SOW);
+                if (!sowExists)
+                    throw new ArgumentException("The specified sow does not exist.");
+
+                sowRequirement.SOWId = _object.SOW;
+            }
+            else
+            {
+                sowRequirement.SOWId = null;
+            }
+            //___________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Designation))
+            {
+                var designationExists = await _context.TblDesignation
+                    .AnyAsync(d => d.Id == _object.Designation);
+                if (!designationExists)
+                    throw new ArgumentException("The specified designation does not exist.");
+
+                sowRequirement.DesignationId = _object.Designation;
+            }
+            else
+            {
+                sowRequirement.DesignationId = null;
+            }
+            //_____________________________________________________
+            if (_object.TeamSize.HasValue && _object.TeamSize > 0)
+            {
+                sowRequirement.TeamSize = _object.TeamSize.Value;
+            }
+            else
+            {
+                sowRequirement.TeamSize = null;
+            }
+
+
+            /*sowRequirement.SOWId = _object.SOW;
             sowRequirement.DesignationId = _object.Designation;
-            sowRequirement.TeamSize = _object.TeamSize;
+            sowRequirement.TeamSize = _object.TeamSize;*/
             sowRequirement.IsActive = _object.IsActive;
             sowRequirement.CreatedBy = _object.CreatedBy;
             sowRequirement.CreatedDate = _object.CreatedDate;

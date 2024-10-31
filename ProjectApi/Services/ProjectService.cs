@@ -81,7 +81,7 @@ namespace ProjectApi.Services
         }
 
         public async Task<ProjectDTO> Add(ProjectDTO projDto)
-        {
+        {        
             // Check if the project name already exists
             var existingProject = await _context.TblProject
                 .FirstOrDefaultAsync(t => t.ProjectName == projDto.ProjectName);
@@ -91,62 +91,152 @@ namespace ProjectApi.Services
 
             var project = new Project();
 
-           /* var client = await _context.TblClient
-               .FirstOrDefaultAsync(d => d.Name == projDto.Client);
+           
+            //___________________________________________________________
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
+            /* var client = await _context.TblClient
+                .FirstOrDefaultAsync(d => d.Name == projDto.Client);
 
-            var technicalProjectManager = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.TechnicalProjectManager);
+             if (client == null)
+                 throw new KeyNotFoundException("Client not found");
 
-            if (technicalProjectManager == null)
-                throw new KeyNotFoundException("TechnicalProjectManagerId not found");
+             var technicalProjectManager = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == projDto.TechnicalProjectManager);
 
-            var salesContact = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.SalesContact);
+             if (technicalProjectManager == null)
+                 throw new KeyNotFoundException("TechnicalProjectManagerId not found");
 
-            if (salesContact == null)
-                throw new KeyNotFoundException("SalesContact not found");
+             var salesContact = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == projDto.SalesContact);
 
-            var pmo = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
+             if (salesContact == null)
+                 throw new KeyNotFoundException("SalesContact not found");
 
-            if (pmo == null)
-                throw new KeyNotFoundException("PMO not found");*/
+             var pmo = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
+
+             if (pmo == null)
+                 throw new KeyNotFoundException("PMO not found");*/
+
+            if (!string.IsNullOrWhiteSpace(projDto.TechnicalProjectManager))
+            {
+                var technicalProjectManagerExists = await _context.TblEmployee
+                    .AnyAsync(tpm => tpm.Id == projDto.TechnicalProjectManager);
+                if (!technicalProjectManagerExists)
+                    throw new ArgumentException("The specified technicalProjectManager does not exist.");
+
+                project.TechnicalProjectManager = projDto.TechnicalProjectManager;
+            }
+            else
+            {
+                project.TechnicalProjectManager = null; // Allow null if department is not specified
+            }
+            //____________________________________________________________________________
+            if (!string.IsNullOrWhiteSpace(projDto.SalesContact))
+            {
+                var salesContactExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == projDto.SalesContact);
+                if (!salesContactExists)
+                    throw new ArgumentException("The specified salesContact does not exist.");
+
+                project.SalesContact = projDto.SalesContact;
+            }
+            else
+            {
+                project.SalesContact = null; 
+            }
+            //____________________________________________________________________________
+            if (!string.IsNullOrWhiteSpace(projDto.PMO))
+            {
+                var pmoExists = await _context.TblEmployee
+                    .AnyAsync(p => p.Id == projDto.PMO);
+                if (!pmoExists)
+                    throw new ArgumentException("The specified pmo does not exist.");
+
+                project.PMO = projDto.PMO;
+            }
+            else
+            {
+                project.PMO = null; // Allow null if department is not specified
+            }
+            //____________________________________________________________________________
+            if (projDto.SOWSubmittedDate.HasValue)
+            {
+                project.SOWSubmittedDate = projDto.SOWSubmittedDate;
+            }
+            else
+            {
+                project.SOWSubmittedDate = null;
+            }
+            //_____________________________________________________________________________
+            if (projDto.SOWSignedDate.HasValue)
+            {
+                project.SOWSignedDate = projDto.SOWSignedDate;
+            }
+            else
+            {
+                project.SOWSignedDate = null;
+            }
+            //_____________________________________________________________________________
+            if (projDto.SOWValidTill.HasValue)
+            {
+                project.SOWValidTill = projDto.SOWValidTill;
+            }
+            else
+            {
+                project.SOWValidTill = null;
+            }
+            //______________________________________________________________________________
+            if (projDto.SOWLastExtendedDate.HasValue)
+            {
+                project.SOWLastExtendedDate = projDto.SOWLastExtendedDate;
+            }
+            else
+            {
+                project.SOWLastExtendedDate = null;
+            }
 
             project.ClientId = projDto.Client;
-            project.ProjectName = projDto.ProjectName;
+           /* project.ProjectName = projDto.ProjectName;
             project.TechnicalProjectManager = projDto.TechnicalProjectManager;
             project.SalesContact = projDto.SalesContact;
             project.PMO = projDto.PMO;
             project.SOWSubmittedDate = projDto.SOWSubmittedDate;
             project.SOWSignedDate = projDto.SOWSignedDate;
             project.SOWValidTill = projDto.SOWValidTill;
-            project.SOWLastExtendedDate = projDto.SOWLastExtendedDate;
+            project.SOWLastExtendedDate = projDto.SOWLastExtendedDate;*/
             project.IsActive = projDto.IsActive;
             project.CreatedBy = projDto.CreatedBy;
             project.CreatedDate = projDto.CreatedDate;
             project.UpdatedBy = projDto.UpdatedBy;
-            project.UpdatedDate = projDto.UpdatedDate;
-            
+            project.UpdatedDate = projDto.UpdatedDate;            
 
             _context.TblProject.Add(project);
             await _context.SaveChangesAsync();
             projDto.Id = project.Id;
 
-            if (projDto.Technology != null && projDto.Technology.Any())
+            /*if (projDto.Technology != null && projDto.Technology.Any())
+            {*/
+            if (projDto.Technology == null || projDto.Technology.All(string.IsNullOrWhiteSpace))
+            {
+                projDto.Technology = null;
+                Console.WriteLine("projDto.Technology is set to null.");
+            }
+            else
             {
                 foreach (var technologyId in projDto.Technology)
                 {
-                    //var technology = await _context.TblTechnology.FirstOrDefaultAsync(t => t.Id == technologyId) ?? throw new KeyNotFoundException($"Technology with ID {technologyId} not found.");
-                    var projectTechnology = new ProjectTechnology
+                    if (!string.IsNullOrWhiteSpace(technologyId))
                     {
-                        ProjectId = project.Id,
-                        TechnologyId = technologyId.ToString(),
-                    };
+                        //var technology = await _context.TblTechnology.FirstOrDefaultAsync(t => t.Id == technologyId) ?? throw new KeyNotFoundException($"Technology with ID {technologyId} not found.");
+                        var projectTechnology = new ProjectTechnology
+                        {
+                            ProjectId = project.Id,
+                            TechnologyId = technologyId.ToString(),
+                        };
 
-                    await _context.TblProjectTechnology.AddAsync(projectTechnology);
+                        await _context.TblProjectTechnology.AddAsync(projectTechnology);
+                    }
                 }
                 await _context.SaveChangesAsync();
             }

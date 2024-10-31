@@ -79,31 +79,26 @@ namespace TechnologyApi.Services
 
             if (existingTechnology != null)
                 throw new ArgumentException("A technology with the same name already exists.");
-            
+
             // Check if a department name is provided
             if (!string.IsNullOrWhiteSpace(technologyDto.Department))
             {
-                // Look for the department in the database
-                /*var department = await _context.TblDepartment
-                    .FirstOrDefaultAsync(d => d.Name == technologyDto.Department);
+                // Verify that the department exists before assigning it
+                var departmentExists = await _context.TblDepartment
+                    .AnyAsync(d => d.Id == technologyDto.Department);
+                if (!departmentExists)
+                    throw new ArgumentException("The specified department does not exist.");
 
-                // If department is not found, throw an exception and provide valid department names
-                if (department == null)
-                {
-                    throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
-                }
-*/
-                technology.DepartmentId = technologyDto.Id;
+                technology.DepartmentId = technologyDto.Department;
             }
             else
             {
-                // If no department is provided, allow null for the DepartmentId
-                technology.DepartmentId = null;
+                technology.DepartmentId = null; // Allow null if department is not specified
             }
+
             var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
 
-            technology.Name = technologyDto.Name;
-            technology.DepartmentId = technologyDto.Department;
+            technology.Name = technologyDto.Name;                       
             technology.IsActive = true;
             technology.CreatedBy = employeeName;
             technology.CreatedDate = DateTime.Now;
@@ -134,22 +129,17 @@ namespace TechnologyApi.Services
             // Check if a department name is provided
             if (!string.IsNullOrWhiteSpace(technologyDto.Department))
             {
-                // Look for the department in the database
-                var department = await _context.TblDepartment
-                    .FirstOrDefaultAsync(d => d.Name == technologyDto.Department);
+                // Verify that the department exists before assigning it
+                var departmentExists = await _context.TblDepartment
+                    .AnyAsync(d => d.Id == technologyDto.Department);
+                if (!departmentExists)
+                    throw new ArgumentException("The specified department does not exist.");
 
-                // If department is not found, throw an exception
-                if (department == null)
-                {
-                    throw new ArgumentException("Invalid department name. Please enter a valid department name.");
-                }
-
-                technology.DepartmentId = department.Id; // Update the DepartmentId
+                technology.DepartmentId = technologyDto.Department;
             }
             else
             {
-                // Allow DepartmentId to be null if no department name is provided
-                technology.DepartmentId = null;
+                technology.DepartmentId = null; // Allow null if department is not specified
             }
 
             technology.Name = technologyDto.Name;

@@ -172,27 +172,73 @@ namespace BlogsApi.Services
 
         public async Task<BlogsDTO> Add(BlogsDTO _object)
         {
-          /*  var author = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == _object.Author);
+            var blog = new Blogs();
+            /*  var author = await _context.TblEmployee
+                  .FirstOrDefaultAsync(d => d.Name == _object.Author);
 
-            if (author == null)
-                throw new KeyNotFoundException("Author not found");*/
+              if (author == null)
+                  throw new KeyNotFoundException("Author not found");*/
 
-            var blog = new Blogs
+            if (!string.IsNullOrWhiteSpace(_object.Author))
             {
-                Title = _object.Title,
-                Author = _object.Author,
-                Status = _object?.Status,
-                TargetDate = _object.TargetDate,
-                CompletedDate = _object.CompletedDate,
-                PublishedDate = _object.PublishedDate,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = DateTime.UtcNow,  // Automatically set creation date
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = DateTime.UtcNow
-            };
+                var author = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Author);
+                if (!author)
+                    throw new ArgumentException("The specified author does not exist.");
+                blog.Author = _object.Author;
+            }
+            else
+            {
+                blog.Author = null; 
+            }
+            //_____________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                blog.Status = _object.Status;
+            }
+            else
+            {
+                blog.Status = null;
+            }
+            //______________________________________________________
+            if (_object.TargetDate.HasValue)
+            {
+                blog.TargetDate = _object.TargetDate;
+            }
+            else
+            {
+                blog.TargetDate = null;
+            }
+            //_______________________________________________________
+            if (_object.CompletedDate.HasValue)
+            {
+                blog.CompletedDate = _object.CompletedDate;
+            }
+            else
+            {
+                blog.CompletedDate = null;
+            }
+            //________________________________________________________
+            if (_object.PublishedDate.HasValue)
+            {
+                blog.PublishedDate = _object.PublishedDate;
+            }
+            else
+            {
+                blog.PublishedDate = null;
+            }
 
+            blog.Title = _object.Title;
+               /* blog.Author = _object.Author;
+                blog.Status = _object?.Status;
+                blog.TargetDate = _object.TargetDate;
+                blog.CompletedDate = _object.CompletedDate;
+                blog.PublishedDate = _object.PublishedDate;*/
+                blog.IsActive = _object.IsActive;
+                blog.CreatedBy = _object.CreatedBy;
+                blog.CreatedDate = DateTime.UtcNow;  // Automatically set creation date
+                blog.UpdatedBy = _object.UpdatedBy;
+                blog.UpdatedDate = DateTime.UtcNow;            
             await _context.TblBlogs.AddAsync(blog);
             await _context.SaveChangesAsync();
 
@@ -202,7 +248,7 @@ namespace BlogsApi.Services
 
         // Updated Update method to allow only admins to reactivate a blog
         public async Task<BlogsDTO> Update(BlogsDTO _object, string userRole)
-        {
+       {       
             var blog = await _context.TblBlogs.FindAsync(_object.Id) ?? throw new KeyNotFoundException("Blog not found");
            /* var author = await _context.TblEmployee.FirstOrDefaultAsync(d => d.Name == _object.Author) ?? throw new KeyNotFoundException("Author not found");*/
 
@@ -215,13 +261,64 @@ namespace BlogsApi.Services
                 }
             }
 
+            if (!string.IsNullOrWhiteSpace(_object.Author))
+            {
+                var author = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Author);
+                if (!author)
+                    throw new ArgumentException("The specified author does not exist.");
+                blog.Author = _object.Author;
+            }
+            else
+            {
+                blog.Author = null;
+            }
+            //_____________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                blog.Status = _object.Status;
+            }
+            else
+            {
+                blog.Status = null;
+            }
+            //______________________________________________________
+            if (_object.TargetDate.HasValue)
+            {
+                blog.TargetDate = _object.TargetDate;
+            }
+            else
+            {
+                blog.TargetDate = null;
+            }
+            //_______________________________________________________
+            if (_object.CompletedDate.HasValue)
+            {
+                blog.CompletedDate = _object.CompletedDate;
+            }
+            else
+            {
+                blog.CompletedDate = null;
+            }
+            //________________________________________________________
+            if (_object.PublishedDate.HasValue)
+            {
+                blog.PublishedDate = _object.PublishedDate;
+            }
+            else
+            {
+                blog.PublishedDate = null;
+            }
+
             blog.Title = _object.Title;
-            blog.Author = _object.Author;
-            blog.Status = _object.Status;
-            blog.TargetDate = _object.TargetDate;
-            blog.CompletedDate = _object.CompletedDate;
-            blog.PublishedDate = _object.PublishedDate;
+            /* blog.Author = _object.Author;
+             blog.Status = _object?.Status;
+             blog.TargetDate = _object.TargetDate;
+             blog.CompletedDate = _object.CompletedDate;
+             blog.PublishedDate = _object.PublishedDate;*/
             blog.IsActive = _object.IsActive;
+            blog.CreatedBy = _object.CreatedBy;
+            blog.CreatedDate = DateTime.UtcNow;  // Automatically set creation date
             blog.UpdatedBy = _object.UpdatedBy;
             blog.UpdatedDate = DateTime.UtcNow;
 

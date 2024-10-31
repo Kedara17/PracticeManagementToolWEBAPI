@@ -65,30 +65,58 @@ namespace SOWApi.Services
 
         public async Task<SOWProposedTeamDTO> Add(SOWProposedTeamDTO _object)
         {
+            var sowProposedTeam = new SOWProposedTeam();
+            /* var sowRequirement = await _context.TblSOWRequirement
+                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
-           /* var sowRequirement = await _context.TblSOWRequirement
-               .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
+             if (sowRequirement == null)
+                 throw new KeyNotFoundException("SowRequirement not found");
 
-            if (sowRequirement == null)
-                throw new KeyNotFoundException("SowRequirement not found");
+             var employee = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == _object.Employee);
 
-            var employee = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Employee);
+             if (employee == null)
+                 throw new KeyNotFoundException("Employee not found");*/
 
-            if (employee == null)
-                throw new KeyNotFoundException("Employee not found");*/
-
-
-            var sowProposedTeam = new SOWProposedTeam
+           
+            //_________________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.SOWRequirement))
             {
-                SOWRequirementId = _object.SOWRequirement,
-                EmployeeId = _object.Employee,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
-            };
+                var sowRequirementExists = await _context.TblSOWRequirement
+                    .AnyAsync(d => d.Id == _object.SOWRequirement);
+                if (!sowRequirementExists)
+                    throw new ArgumentException("The specified project does not exist.");
+
+                sowProposedTeam.SOWRequirementId = _object.SOWRequirement;
+            }
+            else
+            {
+                sowProposedTeam.SOWRequirementId = null;
+            }
+            //_________________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Employee))
+            {
+                var employeeExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Employee);
+                if (!employeeExists)
+                    throw new ArgumentException("The specified employee does not exist.");
+
+                sowProposedTeam.EmployeeId = _object.Employee;
+            }
+            else
+            {
+                sowProposedTeam.EmployeeId = null;
+            }
+
+
+            /*sowProposedTeam.SOWRequirementId = _object.SOWRequirement;
+            sowProposedTeam.EmployeeId = _object.Employee;*/
+            sowProposedTeam.IsActive = _object.IsActive;
+            sowProposedTeam.CreatedBy = _object.CreatedBy;
+            sowProposedTeam.CreatedDate = _object.CreatedDate;
+            sowProposedTeam.UpdatedBy = _object.UpdatedBy;
+            sowProposedTeam.UpdatedDate = _object.UpdatedDate;
+           
 
             _context.TblSOWProposedTeam.Add(sowProposedTeam);
             await _context.SaveChangesAsync();
@@ -104,25 +132,56 @@ namespace SOWApi.Services
             if (sowProposedTeam == null)
                 throw new KeyNotFoundException("sowProposedTeam not found");
 
-           /* var sowRequirement = await _context.TblSOWRequirement
-               .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
+            /* var sowRequirement = await _context.TblSOWRequirement
+                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
-            if (sowRequirement == null)
-                throw new KeyNotFoundException("SowRequirement not found");
+             if (sowRequirement == null)
+                 throw new KeyNotFoundException("SowRequirement not found");
 
-            var employee = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Employee);
+             var employee = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == _object.Employee);
 
-            if (employee == null)
-                throw new KeyNotFoundException("Employee not found");
-*/
-            sowProposedTeam.SOWRequirementId = _object.SOWRequirement;
-            sowProposedTeam.EmployeeId = _object.Employee;
+             if (employee == null)
+                 throw new KeyNotFoundException("Employee not found");
+ */
+            //_________________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.SOWRequirement))
+            {
+                var sowRequirementExists = await _context.TblSOWRequirement
+                    .AnyAsync(d => d.Id == _object.SOWRequirement);
+                if (!sowRequirementExists)
+                    throw new ArgumentException("The specified project does not exist.");
+
+                sowProposedTeam.SOWRequirementId = _object.SOWRequirement;
+            }
+            else
+            {
+                sowProposedTeam.SOWRequirementId = null;
+            }
+            //_________________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Employee))
+            {
+                var employeeExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Employee);
+                if (!employeeExists)
+                    throw new ArgumentException("The specified employee does not exist.");
+
+                sowProposedTeam.EmployeeId = _object.Employee;
+            }
+            else
+            {
+                sowProposedTeam.EmployeeId = null;
+            }
+
+
+            /*sowProposedTeam.SOWRequirementId = _object.SOWRequirement;
+            sowProposedTeam.EmployeeId = _object.Employee;*/
             sowProposedTeam.IsActive = _object.IsActive;
             sowProposedTeam.CreatedBy = _object.CreatedBy;
             sowProposedTeam.CreatedDate = _object.CreatedDate;
             sowProposedTeam.UpdatedBy = _object.UpdatedBy;
             sowProposedTeam.UpdatedDate = _object.UpdatedDate;
+
 
             _context.Entry(sowProposedTeam).State = EntityState.Modified;
             await _context.SaveChangesAsync();
