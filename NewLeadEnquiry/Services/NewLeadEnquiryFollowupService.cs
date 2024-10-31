@@ -1,6 +1,7 @@
 ﻿using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace NewLeadApi.Services
 {
@@ -15,12 +16,15 @@ namespace NewLeadApi.Services
             _context = context;
         }
 
-        // Retrieve all followups
         public async Task<IEnumerable<NewLeadEnquiryFollowupDTO>> GetAll()
         {
-            var followups = await _repository.GetAll();
-            return followups.Select(f => new NewLeadEnquiryFollowupDTO
+            var followups = await _context.TblNewLeadEnquireFollowup
+                .Include(ne => ne.NewLeadEnquiry)
+                .Include(ne => ne.Employee)
+                .ToListAsync();
+            var dto = followups.Select(f => new NewLeadEnquiryFollowupDTO
             {
+                Id = f.Id,
                 NewLeadEnquiryID = f.NewLeadEnquiryID.ToString(),
                 AssignTo = f.AssignTo.ToString(),
                 NewFollowupDate = f.NewFollowupDate,
@@ -30,17 +34,22 @@ namespace NewLeadApi.Services
                 CreatedDate = f.CreatedDate,
                 UpdatedBy = f.UpdatedBy,
                 UpdatedDate = f.UpdatedDate
-            });
+            }).ToList();
+            return dto;
         }
 
-        // Get a specific followup by id
         public async Task<NewLeadEnquiryFollowupDTO> Get(string id)
         {
-            var followup = await _repository.Get(id);
+            var followup = await _context.TblNewLeadEnquireFollowup
+                .Include(ne => ne.NewLeadEnquiry)
+                .Include(ne => ne.Employee)
+                .FirstOrDefaultAsync(ne => ne.Id == id);
+
             if (followup == null) return null;
 
             return new NewLeadEnquiryFollowupDTO
             {
+                Id = followup.Id,
                 NewLeadEnquiryID = followup.NewLeadEnquiryID.ToString(),
                 AssignTo = followup.AssignTo.ToString(),
                 NewFollowupDate = followup.NewFollowupDate,
@@ -53,33 +62,59 @@ namespace NewLeadApi.Services
             };
         }
 
-        // Add a new followup
         public async Task<NewLeadEnquiryFollowupDTO> Add(NewLeadEnquiryFollowupDTO dto)
         {
-            var newFollowup = new NewLeadEnquiryFollowup
-            {
-                NewLeadEnquiryID = dto.NewLeadEnquiryID,
-                AssignTo = dto.AssignTo,
-                NewFollowupDate = dto.NewFollowupDate,
-                Comments = dto.Comments,
-                IsActive = dto.IsActive,
-                CreatedBy = dto.CreatedBy,
-                CreatedDate = dto.CreatedDate,
-                UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = dto.UpdatedDate
-            };
+            var newFollowup = new NewLeadEnquiryFollowup();
 
-            await _repository.Create(newFollowup);
+            var newLeadEnquiryID = await _context.TblNewLeadEnquiry
+             .FirstOrDefaultAsync(d => d.Id == dto.NewLeadEnquiryID);
+            if (newLeadEnquiryID == null)
+                throw new KeyNotFoundException("NewLeadEnquiryID not found");
+
+            var assignTo = await _context.TblEmployee
+               .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
+            if (assignTo == null)
+                throw new KeyNotFoundException("AssignTo not found");
+
+            newFollowup.Id = dto.Id;
+            newFollowup.NewLeadEnquiryID = dto.NewLeadEnquiryID;
+            newFollowup.AssignTo = dto.AssignTo;
+            newFollowup.NewFollowupDate = dto.NewFollowupDate;
+            newFollowup.Comments = dto.Comments;
+            newFollowup.IsActive = dto.IsActive;
+            newFollowup.CreatedBy = dto.CreatedBy;
+            newFollowup.CreatedDate = dto.CreatedDate;
+            newFollowup.UpdatedBy = dto.UpdatedBy;
+            newFollowup.UpdatedDate = dto.UpdatedDate;
+
+            dto.Id = newFollowup.Id;
+            await _context.TblNewLeadEnquireFollowup.AddAsync(newFollowup);
+            await _context.SaveChangesAsync();
             return dto;
         }
-
-        // Update an existing followup
+        
         public async Task<NewLeadEnquiryFollowupDTO> Update(NewLeadEnquiryFollowupDTO dto)
         {
-            var followup = await _repository.Get(dto.Id); // Use the primary key or unique identifier for retrieval
-            if (followup == null) throw new KeyNotFoundException("Followup not found.");
+            // Check if the follow-up ID exists
+            var followup = await _context.TblNewLeadEnquireFollowup.FindAsync(dto.Id);
+            if (followup == null)
+                throw new KeyNotFoundException("Followup not found.");
 
-            followup.NewLeadEnquiryID = dto.NewLeadEnquiryID; // Update foreign key
+            // Validate NewLeadEnquiryID exists
+            var newLeadEnquiry = await _context.TblNewLeadEnquiry
+                .FindAsync(dto.NewLeadEnquiryID);
+            if (newLeadEnquiry == null)
+                throw new KeyNotFoundException("NewLeadEnquiryID not found.");
+
+            // Validate AssignTo exists in the Employee table
+            var assignTo = await _context.TblEmployee
+                .FindAsync(dto.AssignTo);
+            if (assignTo == null)
+                throw new KeyNotFoundException("AssignTo not found.");
+
+            // Update followup fields
+            followup.Id = dto.Id;
+            followup.NewLeadEnquiryID = dto.NewLeadEnquiryID;
             followup.AssignTo = dto.AssignTo;
             followup.NewFollowupDate = dto.NewFollowupDate;
             followup.Comments = dto.Comments;
@@ -89,23 +124,27 @@ namespace NewLeadApi.Services
             followup.UpdatedBy = dto.UpdatedBy;
             followup.UpdatedDate = dto.UpdatedDate;
 
-            await _repository.Update(followup);
+            // Set the entity state to modified
+            _context.Entry(followup).State = EntityState.Modified;
+
+            // Save changes to the database
+            await _context.SaveChangesAsync();
+
             return dto;
         }
 
-        // Delete a followup by id
         public async Task<bool> Delete(string id)
-        { 
-            var followup = await _repository.Get(id);
+        {
+            var followup = await _context.TblNewLeadEnquireFollowup.FindAsync(id);
             if (followup == null)
             {
                 throw new KeyNotFoundException($"FollowUp with ID {id} not found.");
             }
-
             followup.IsActive = false; // Soft delete
-            await _repository.Update(followup); // Update the record
-
+            _context.TblNewLeadEnquireFollowup.Update(followup); // Update the record
+            await _context.SaveChangesAsync(); // Ensure to save changes
             return true;
         }
     }
+
 }

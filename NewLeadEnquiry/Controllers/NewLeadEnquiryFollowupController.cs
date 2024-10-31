@@ -1,7 +1,9 @@
 ﻿using DataServices.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NewLeadApi.Services;
+using System.Runtime.InteropServices;
 
 namespace NewLeadApi.Controllers
 {
@@ -16,16 +18,16 @@ namespace NewLeadApi.Controllers
             _followupService = followupService;
         }
 
-        // GET: api/NewLeadEnquiryFollowup
         [HttpGet]
+        [Authorize(Roles = "Admin, Manager, Lead, Team Member")]
         public async Task<ActionResult<IEnumerable<NewLeadEnquiryFollowupDTO>>> GetAll()
         {
             var followups = await _followupService.GetAll();
             return Ok(followups);
         }
 
-        // GET: api/NewLeadEnquiryFollowup/{id}
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin, Manager, Lead, Team Member")]
         public async Task<ActionResult<NewLeadEnquiryFollowupDTO>> Get(string id)
         {
             var followup = await _followupService.Get(id);
@@ -37,8 +39,8 @@ namespace NewLeadApi.Controllers
             return Ok(followup);
         }
 
-        // POST: api/NewLeadEnquiryFollowup
         [HttpPost]
+        [Authorize(Roles = "Admin, Manager")]
         public async Task<ActionResult<NewLeadEnquiryFollowupDTO>> Add([FromBody] NewLeadEnquiryFollowupDTO dto)
         {
             if (!ModelState.IsValid)
@@ -50,8 +52,8 @@ namespace NewLeadApi.Controllers
             return CreatedAtAction(nameof(Get), new { id = createdFollowup.NewLeadEnquiryID }, createdFollowup);
         }
 
-        // PUT: api/NewLeadEnquiryFollowup/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin, Manager, Lead")]
         public async Task<IActionResult> Update(string id, [FromBody] NewLeadEnquiryFollowupDTO dto)
         {
             if (id != dto.Id)
@@ -76,8 +78,8 @@ namespace NewLeadApi.Controllers
             return NoContent();
         }
 
-        // DELETE: api/NewLeadEnquiryFollowup/{id}
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _followupService.Delete(id);
@@ -88,5 +90,6 @@ namespace NewLeadApi.Controllers
 
             return NoContent();
         }
+
     }
 }
