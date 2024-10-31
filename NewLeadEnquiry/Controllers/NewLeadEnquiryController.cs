@@ -115,7 +115,7 @@ namespace NewLeadApi.Controllers
             return Ok();
         }
 
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {

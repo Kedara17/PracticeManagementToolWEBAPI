@@ -1,4 +1,5 @@
 ﻿using DataServices.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NewLeadApi.Services;
@@ -16,16 +17,16 @@ namespace NewLeadApi.Controllers
             _service = service;
         }
 
-        // GET: api/NewLeadEnquiryDocuments
         [HttpGet]
+        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
         public async Task<ActionResult<IEnumerable<NewLeadEnquiryDocumentsDTO>>> GetAllDocuments()
         {
             var documents = await _service.GetAll();
             return Ok(documents);
         }
-
-        // GET: api/NewLeadEnquiryDocuments/{id}
+              
         [HttpGet("{id}")]
+        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead, Team Member")]
         public async Task<ActionResult<NewLeadEnquiryDocumentsDTO>> GetDocument(string id)
         {
             var document = await _service.Get(id);
@@ -36,8 +37,8 @@ namespace NewLeadApi.Controllers
             return Ok(document);
         }
 
-        // POST: api/NewLeadEnquiryDocuments
         [HttpPost]
+        [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<ActionResult<NewLeadEnquiryDocumentsDTO>> AddDocument(NewLeadEnquiryDocumentsDTO documentDTO)
         {
             var createdDocument = await _service.Add(documentDTO);
@@ -46,6 +47,7 @@ namespace NewLeadApi.Controllers
 
         // PUT: api/NewLeadEnquiryDocuments/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
         public async Task<ActionResult<NewLeadEnquiryDocumentsDTO>> UpdateDocument(string id, NewLeadEnquiryDocumentsDTO documentDTO)
         {
             if (id != documentDTO.Id)
@@ -65,7 +67,8 @@ namespace NewLeadApi.Controllers
         }
 
         // DELETE: api/NewLeadEnquiryDocuments/{id}
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteDocument(string id)
         {
             var result = await _service.Delete(id);
