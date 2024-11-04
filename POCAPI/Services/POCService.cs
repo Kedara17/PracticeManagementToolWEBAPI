@@ -78,18 +78,68 @@ namespace POCAPI.Services
             if (existingPOC != null)
                 throw new ArgumentException("A POC with the same name already exists.");
 
-           /* var client = await _context.TblClient
-                .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
+            /* var client = await _context.TblClient
+                 .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");*/
+             if (client == null)
+                 throw new KeyNotFoundException("Client not found");*/
+
+           if (!string.IsNullOrWhiteSpace(pocDto.Client))
+            {
+                var clientExists = await _context.TblClient
+                    .AnyAsync(d => d.Id == pocDto.Client);
+                if (!clientExists)
+                    throw new ArgumentException("The specified client does not exist.");
+
+                poc.ClientId = pocDto.Client;
+            }
+            else
+            {
+                poc.ClientId = null;
+            }
+            //____________________________________________________________
+            if (!string.IsNullOrWhiteSpace(pocDto.Status))
+            {
+                poc.Status = pocDto.Status;
+            }
+            else
+            {
+                poc.Status = null;
+            }
+            //____________________________________________________________
+            if (pocDto.TargetDate.HasValue)
+            {
+                poc.TargetDate = pocDto.TargetDate;
+            }
+            else
+            {
+                poc.TargetDate = null;
+            }
+            //_____________________________________________________________
+            if (pocDto.CompletedDate.HasValue)
+            {
+                poc.CompletedDate = pocDto.CompletedDate;
+            }
+            else
+            {
+                poc.CompletedDate = null;
+            }
+            //____________________________________________________________
+            if (!string.IsNullOrWhiteSpace(pocDto.Document))
+            {
+                poc.Document = pocDto.Document;
+            }
+            else
+            {
+                poc.Document = null;
+            }
 
             poc.Title = pocDto.Title;
             poc.ClientId = pocDto.Client;
-            poc.Status = pocDto?.Status;
-            poc.TargetDate = pocDto.TargetDate;
-            poc.CompletedDate = pocDto.CompletedDate;
-            poc.Document = pocDto.Document;
+            /* poc.Status = pocDto?.Status;
+             poc.TargetDate = pocDto.TargetDate;
+             poc.CompletedDate = pocDto.CompletedDate;
+             poc.Document = pocDto.Document;*/
             poc.IsActive = pocDto.IsActive;
             poc.CreatedBy = pocDto.CreatedBy;
             poc.CreatedDate = pocDto.CreatedDate;

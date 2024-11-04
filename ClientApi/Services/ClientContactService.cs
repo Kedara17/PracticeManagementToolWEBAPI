@@ -92,6 +92,20 @@ namespace ClientApi.Services
              if (contactType == null)
                  throw new KeyNotFoundException("ContactType not found");*/
 
+            if (!string.IsNullOrWhiteSpace(clientContactDTO.Client))
+            {
+                var clientExists = await _context.TblClient
+                    .AnyAsync(c => c.Id == clientContactDTO.Client);
+                if (!clientExists)
+                    throw new ArgumentException("The specified client does not exist.");
+
+                clientContact.ClientId = clientContactDTO.Client;
+            }
+            else
+            {
+                clientContact.Client = null;
+            }
+            //_____________________________________________________________
             if (!string.IsNullOrWhiteSpace(clientContactDTO.ContactType))
             {
                 var contactTypeExists = await _context.TblContactType
@@ -106,7 +120,7 @@ namespace ClientApi.Services
                 clientContact.ContactType = null;
             }           
 
-            clientContact.ClientId = clientContactDTO.Client;
+            /*clientContact.ClientId = clientContactDTO.Client;*/
             clientContact.ContactValue = clientContactDTO.ContactValue;
             /* clientContact.ContactTypeId = clientContactDTO.ContactType;*/
             clientContact.IsActive = clientContactDTO.IsActive;

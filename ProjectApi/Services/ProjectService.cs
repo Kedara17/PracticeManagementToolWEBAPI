@@ -257,44 +257,123 @@ namespace ProjectApi.Services
             if (project == null)
                 throw new KeyNotFoundException("Project not found");
 
-          /*  var client = await _context.TblClient
-              .FirstOrDefaultAsync(d => d.Name == projDto.Client);
+            /*  var client = await _context.TblClient
+                .FirstOrDefaultAsync(d => d.Name == projDto.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
+              if (client == null)
+                  throw new KeyNotFoundException("Client not found");
 
-            var technicalProjectManager = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == projDto.TechnicalProjectManager);
+              var technicalProjectManager = await _context.TblEmployee
+                  .FirstOrDefaultAsync(d => d.Name == projDto.TechnicalProjectManager);
 
-            if (technicalProjectManager == null)
-                throw new KeyNotFoundException("TechnicalProjectManagerId not found");
+              if (technicalProjectManager == null)
+                  throw new KeyNotFoundException("TechnicalProjectManagerId not found");
 
-            var salesContact = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.SalesContact);
+              var salesContact = await _context.TblEmployee
+                 .FirstOrDefaultAsync(d => d.Name == projDto.SalesContact);
 
-            if (salesContact == null)
-                throw new KeyNotFoundException("SalesContact not found");
+              if (salesContact == null)
+                  throw new KeyNotFoundException("SalesContact not found");
 
-            var pmo = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
+              var pmo = await _context.TblEmployee
+                 .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
 
-            if (pmo == null)
-                throw new KeyNotFoundException("PMO not found");*/
+              if (pmo == null)
+                  throw new KeyNotFoundException("PMO not found");*/
+
+            if (!string.IsNullOrWhiteSpace(projDto.TechnicalProjectManager))
+            {
+                var technicalProjectManagerExists = await _context.TblEmployee
+                    .AnyAsync(tpm => tpm.Id == projDto.TechnicalProjectManager);
+                if (!technicalProjectManagerExists)
+                    throw new ArgumentException("The specified technicalProjectManager does not exist.");
+
+                project.TechnicalProjectManager = projDto.TechnicalProjectManager;
+            }
+            else
+            {
+                project.TechnicalProjectManager = null; // Allow null if department is not specified
+            }
+            //____________________________________________________________________________
+            if (!string.IsNullOrWhiteSpace(projDto.SalesContact))
+            {
+                var salesContactExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == projDto.SalesContact);
+                if (!salesContactExists)
+                    throw new ArgumentException("The specified salesContact does not exist.");
+
+                project.SalesContact = projDto.SalesContact;
+            }
+            else
+            {
+                project.SalesContact = null;
+            }
+            //____________________________________________________________________________
+            if (!string.IsNullOrWhiteSpace(projDto.PMO))
+            {
+                var pmoExists = await _context.TblEmployee
+                    .AnyAsync(p => p.Id == projDto.PMO);
+                if (!pmoExists)
+                    throw new ArgumentException("The specified pmo does not exist.");
+
+                project.PMO = projDto.PMO;
+            }
+            else
+            {
+                project.PMO = null; // Allow null if department is not specified
+            }
+            //____________________________________________________________________________
+            if (projDto.SOWSubmittedDate.HasValue)
+            {
+                project.SOWSubmittedDate = projDto.SOWSubmittedDate;
+            }
+            else
+            {
+                project.SOWSubmittedDate = null;
+            }
+            //_____________________________________________________________________________
+            if (projDto.SOWSignedDate.HasValue)
+            {
+                project.SOWSignedDate = projDto.SOWSignedDate;
+            }
+            else
+            {
+                project.SOWSignedDate = null;
+            }
+            //_____________________________________________________________________________
+            if (projDto.SOWValidTill.HasValue)
+            {
+                project.SOWValidTill = projDto.SOWValidTill;
+            }
+            else
+            {
+                project.SOWValidTill = null;
+            }
+            //______________________________________________________________________________
+            if (projDto.SOWLastExtendedDate.HasValue)
+            {
+                project.SOWLastExtendedDate = projDto.SOWLastExtendedDate;
+            }
+            else
+            {
+                project.SOWLastExtendedDate = null;
+            }
 
             project.ClientId = projDto.Client;
-            project.ProjectName = projDto.ProjectName;
-            project.TechnicalProjectManager = projDto.TechnicalProjectManager;
-            project.SalesContact = projDto.SalesContact;
-            project.PMO = projDto.PMO;
-            project.SOWSubmittedDate = projDto.SOWSubmittedDate;
-            project.SOWSignedDate = projDto.SOWSignedDate;
-            project.SOWValidTill = projDto.SOWValidTill;
-            project.SOWLastExtendedDate = projDto.SOWLastExtendedDate;
+            /* project.ProjectName = projDto.ProjectName;
+             project.TechnicalProjectManager = projDto.TechnicalProjectManager;
+             project.SalesContact = projDto.SalesContact;
+             project.PMO = projDto.PMO;
+             project.SOWSubmittedDate = projDto.SOWSubmittedDate;
+             project.SOWSignedDate = projDto.SOWSignedDate;
+             project.SOWValidTill = projDto.SOWValidTill;
+             project.SOWLastExtendedDate = projDto.SOWLastExtendedDate;*/
             project.IsActive = projDto.IsActive;
             project.CreatedBy = projDto.CreatedBy;
             project.CreatedDate = projDto.CreatedDate;
             project.UpdatedBy = projDto.UpdatedBy;
             project.UpdatedDate = projDto.UpdatedDate;
+
 
             _context.Entry(project).State = EntityState.Modified;
 

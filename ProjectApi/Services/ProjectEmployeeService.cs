@@ -154,21 +154,69 @@ namespace ProjectApi.Services
             if (projectEmployee == null)
                 throw new KeyNotFoundException("ProjectEmployee not found");
 
-           /* var project = await _context.TblProject
-              .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
+            /* var project = await _context.TblProject
+               .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
 
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
+             if (project == null)
+                 throw new KeyNotFoundException("Project not found");
 
-            var employee = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == _object.Employee);
+             var employee = await _context.TblEmployee
+                 .FirstOrDefaultAsync(d => d.Name == _object.Employee);
 
-            if (employee == null)
-                throw new KeyNotFoundException("employee not found");*/
+             if (employee == null)
+                 throw new KeyNotFoundException("employee not found");*/
 
+            if (!string.IsNullOrWhiteSpace(_object.Project))
+            {
+                var projectExists = await _context.TblProject
+                    .AnyAsync(d => d.Id == _object.Project);
+                if (!projectExists)
+                    throw new ArgumentException("The specified project does not exist.");
 
-            projectEmployee.ProjectId = _object.Project;
-            projectEmployee.EmployeeId = _object.Employee;
+                projectEmployee.ProjectId = _object.Project;
+            }
+            else
+            {
+                projectEmployee.ProjectId = null;
+            }
+            //____________________________________________________________
+
+            if (!string.IsNullOrWhiteSpace(_object.Employee))
+            {
+                var employeeExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Employee);
+                if (!employeeExists)
+                    throw new ArgumentException("The specified employee does not exist.");
+
+                projectEmployee.EmployeeId = _object.Employee;
+            }
+            else
+            {
+                projectEmployee.EmployeeId = null;
+            }
+            //___________________________________________________________
+            if (_object.StartDate.HasValue)
+            {
+                _object.StartDate = _object.StartDate;
+            }
+            else
+            {
+                _object.StartDate = null;
+            }
+            //______________________________________________________________________________
+            if (_object.EndDate.HasValue)
+            {
+                _object.EndDate = _object.EndDate;
+            }
+            else
+            {
+                _object.EndDate = null;
+            }
+
+            /* projectEmployee.ProjectId = _object.Project;
+             projectEmployee.EmployeeId = _object.Employee;
+             projectEmployee.StartDate = _object.StartDate;
+             projectEmployee.EndDate = _object.EndDate;*/
             projectEmployee.IsActive = _object.IsActive;
             projectEmployee.CreatedBy = _object.CreatedBy;
             projectEmployee.CreatedDate = _object.CreatedDate;
