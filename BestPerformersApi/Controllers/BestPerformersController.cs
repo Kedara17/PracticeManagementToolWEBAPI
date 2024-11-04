@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace BestPerformersAPI.Controllers
 {
@@ -54,7 +54,7 @@ namespace BestPerformersAPI.Controllers
         // POST: api/bestperformers
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<BestPerformersDTO>> Add([FromBody] BestPerformersDTO bestPerformersDTO)
+        public async Task<ActionResult<BestPerformersDTO>> Add([FromBody] BestPerfomersCreateDTO createDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -62,168 +62,39 @@ namespace BestPerformersAPI.Controllers
                 return BadRequest(ModelState); // Return the validation errors
             }
 
-            if (bestPerformersDTO == null)
+            // Check if technology name is unique
+            var existingBestPerformer = await _bestPerformersServices.GetByName(createDTO.Name);
+            if (existingBestPerformer != null)
             {
-                _logger.LogWarning("Attempt to add null BestPerformersDTO");
-                return BadRequest("BestPerformersDTO cannot be null.");
+                _logger.LogWarning("BestPerformer with ID '{Id}' already exists", createDTO.Name);
+                return BadRequest($"BestPerformer with ID '{createDTO.Name}' already exists.");
             }
+            _logger.LogInformation("Creating a new BestPerformer");
 
-            _logger.LogInformation("Adding a new best performer");
-            var createdBestPerformer = await _bestPerformersServices.Add(bestPerformersDTO);
-
-            _logger.LogInformation("Best performer with ID {Id} created", createdBestPerformer.Id);
-            return CreatedAtAction(nameof(Get), new { id = createdBestPerformer.Id }, createdBestPerformer);
         }
-
-        //// PUT: api/bestperformers/{id}
-        //[HttpPut("{id}")]
-        //[Authorize(Roles = "Admin")]
-        //public async Task<ActionResult<BestPerformersDTO>> Update(string id, [FromBody] BestPerformersDTO bestPerformersDTO)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        _logger.LogWarning("Invalid model state for BestPerformersDTO");
-        //        return BadRequest(ModelState); // Return the validation errors
-        //    }
-
-        //    if (bestPerformersDTO == null)
-        //    {
-        //        _logger.LogWarning("Attempt to update with null BestPerformersDTO");
-        //        return BadRequest("BestPerformersDTO cannot be null.");
-        //    }
-
-        //    _logger.LogInformation("Updating best performer with ID {Id}", bestPerformersDTO.Id);
-        //    var updatedBestPerformer = await _bestPerformersServices.Update(bestPerformersDTO);
-
-        //    if (updatedBestPerformer == null)
-        //    {
-        //        _logger.LogWarning("Best performer with ID {Id} not found for update", bestPerformersDTO.Id);
-        //        return NotFound();
-        //    }
-
-        //    var userRole = User.FindFirstValue(ClaimTypes.Role);  // Extract user role from token/claims
-
-        //    // Fetch the existing blog to determine the current status
-        //    var existingBestPerformer = await _bestPerformersServices.Get(id);
-        //    if (existingBestPerformer == null)
-        //    {
-        //        return NotFound("Blog not found");
-        //    }
-
-        //    // If trying to reactivate the blog (set IsActive = true)
-        //    if (!existingBestPerformer.IsActive && bestPerformersDTO.IsActive)
-        //    {
-        //        if (userRole != "Admin")
-        //        {
-        //            return Forbid("Only admins can reactivate a blog");
-        //        }
-        //    }
-
-        //    try
-        //    {
-        //        var updatedBestPerformers = await _bestPerformersServices.Update(bestPerformersDTO, userRole);
-        //        return Ok(updatedBestPerformers);
-        //    }
-        //    catch (KeyNotFoundException ex)
-        //    {
-        //        _logger.LogWarning(ex.Message);
-        //        return BadRequest(ex.Message);
-        //    }
-
-        //    //return Ok(updatedBestPerformer);
-        //}
-
-        //// PUT: api/bestperformers/{id}
-        //[HttpPut("{id}")]
-        //[Authorize(Roles = "Admin")]
-        //public async Task<ActionResult<BestPerformersDTO>> Update(string id, [FromBody] BestPerformersDTO bestPerformersDTO)
-        //{
-        //    if (bestPerformersDTO == null)
-        //    {
-        //        _logger.LogWarning("Attempt to update with null BestPerformersDTO");
-        //        return BadRequest("BestPerformersDTO cannot be null.");
-        //    }
-
-        //    if (!ModelState.IsValid)
-        //    {
-        //        _logger.LogWarning("Invalid model state for BestPerformersDTO");
-        //        return BadRequest(ModelState); // Return the validation errors
-        //    }
-
-        //    var existingBestPerformer = await _bestPerformersServices.Get(id);
-        //    if (existingBestPerformer == null)
-        //    {
-        //        _logger.LogWarning("Best performer with ID {Id} not found for update", id);
-        //        return NotFound("Best performer not found");
-        //    }
-
-        //    var userRole = User.FindFirstValue(ClaimTypes.Role); // Extract user role from token/claims
-
-        //    // Check if the update is trying to reactivate an inactive best performer
-        //    if (!existingBestPerformer.IsActive && bestPerformersDTO.IsActive && userRole != "Admin")
-        //    {
-        //        return Forbid("Only admins can reactivate a best performer");
-        //    }
-
-        //    try
-        //    {
-        //        var updatedBestPerformer = await _bestPerformersServices.Update(bestPerformersDTO, userRole);
-        //        _logger.LogInformation("Successfully updated best performer with ID {Id}", updatedBestPerformer.Id);
-        //        return Ok(updatedBestPerformer);
-        //    }
-        //    catch (KeyNotFoundException ex)
-        //    {
-        //        _logger.LogWarning(ex.Message);
-        //        return BadRequest(ex.Message);
-        //    }
-        //}
-
-
         // PUT: api/bestperformers/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<BestPerformersDTO>> Update(string id, [FromBody] BestPerformersDTO bestPerformersDTO)
+        public async Task<ActionResult<BestPerformersDTO>> Update([FromBody] BestPerformersDTO bestPerformersDTO)
         {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid model state for BestPerformersDTO");
+                return BadRequest(ModelState); // Return the validation errors
+            }
             if (bestPerformersDTO == null)
             {
                 _logger.LogWarning("Attempt to update with null BestPerformersDTO");
                 return BadRequest("BestPerformersDTO cannot be null.");
             }
-
-            if (!ModelState.IsValid)
+            _logger.LogInformation("Updating best performer with ID {Id}", bestPerformersDTO.Id);
+            var updatedBestPerformer = await _bestPerformersServices.Update(bestPerformersDTO);
+            if (updatedBestPerformer == null)
             {
-                _logger.LogWarning("Invalid model state for BestPerformersDTO");
-                return BadRequest(ModelState); // Return the validation errors
+                _logger.LogWarning("Best performer with ID {Id} not found for update", bestPerformersDTO.Id);
+                return NotFound();
             }
-
-            var userRole = User.FindFirstValue(ClaimTypes.Role); // Extract user role from token/claims
-
-            // Fetch the existing best performer to determine the current status
-            var existingBestPerformer = await _bestPerformersServices.Get(id);
-            if (existingBestPerformer == null)
-            {
-                _logger.LogWarning("Best performer with ID {Id} not found for update", id);
-                return NotFound("Best performer not found");
-            }
-
-            // Check if the update is trying to reactivate an inactive best performer
-            if (!existingBestPerformer.IsActive && bestPerformersDTO.IsActive && userRole != "Admin")
-            {
-                return Forbid("Only admins can reactivate a best performer");
-            }
-
-            try
-            {
-                // Perform the update with the userRole parameter
-                var updatedBestPerformers = await _bestPerformersServices.Update(bestPerformersDTO, userRole);
-                _logger.LogInformation("Successfully updated best performer with ID {Id}", updatedBestPerformers.Id);
-                return Ok(updatedBestPerformers);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                _logger.LogWarning(ex.Message);
-                return BadRequest(ex.Message);
-            }
+            return Ok(updatedBestPerformer);
         }
 
         // DELETE: api/bestperformers/{id}
