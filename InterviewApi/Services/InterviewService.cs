@@ -78,40 +78,108 @@ namespace InterviewApi.Services
 
         public async Task<InterviewsDTO> Add(InterviewsDTO _object)
         {
-           /* var sowRequirement = await _context.TblSOWRequirement
-               .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
+            /* var sowRequirement = await _context.TblSOWRequirement
+                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
-            if (sowRequirement == null)
-                throw new KeyNotFoundException("SOWRequirement not found");
+             if (sowRequirement == null)
+                 throw new KeyNotFoundException("SOWRequirement not found");
 
-            var status = await _context.TblInterviewStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
+             var status = await _context.TblInterviewStatus
+                .FirstOrDefaultAsync(d => d.Status == _object.Status);
 
-            if (status == null)
-                throw new KeyNotFoundException("status not found");
+             if (status == null)
+                 throw new KeyNotFoundException("status not found");
 
-            var recruiter = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
+             var recruiter = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
 
-            if (recruiter == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
+             if (recruiter == null)
+                 throw new KeyNotFoundException("SalesContact not found");*/
 
 
-            var interviews = new Interviews
+            var interviews = new Interviews();
+
+            if (!string.IsNullOrWhiteSpace(_object.SOWRequirement))
             {
-                SOWRequirementId = _object.SOWRequirement,
-                Name = _object.Name,
-                InterviewDate = _object.InterviewDate,
-                YearsOfExperience = _object.YearsOfExperience,
-                StatusId = _object.Status,
-                On_Boarding = _object.On_Boarding,
-                Recruiter = _object.Recruiter,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
-            };
+                var sowRequirementExists = await _context.TblSOWRequirement
+                    .AnyAsync(d => d.Id == _object.SOWRequirement);
+                if (!sowRequirementExists)
+                    throw new ArgumentException("The specified sowRequirement does not exist.");
+
+                interviews.SOWRequirementId = _object.SOWRequirement;
+            }
+            else
+            {
+                interviews.SOWRequirementId = null;
+            }
+            //_________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                var statusExists = await _context.TblInterviewStatus
+                    .AnyAsync(d => d.Id == _object.Status);
+                if (!statusExists)
+                    throw new ArgumentException("The specified status does not exist.");
+
+                interviews.StatusId = _object.Status;
+            }
+            else
+            {
+                interviews.StatusId = null;
+            }
+            //_________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Recruiter))
+            {
+                var recruiterExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Recruiter);
+                if (!recruiterExists)
+                    throw new ArgumentException("The specified recruiter does not exist.");
+
+                interviews.Recruiter = _object.Recruiter;
+            }
+            else
+            {
+                interviews.Recruiter = null;
+            }
+            //---------------------------------------------------------
+            if (_object.InterviewDate.HasValue)
+            {
+                interviews.InterviewDate = _object.InterviewDate;
+            }
+            else
+            {
+                interviews.InterviewDate = null;
+            }
+            //__________________________________________________________
+            if (_object.YearsOfExperience.HasValue && _object.YearsOfExperience > 0)
+            {
+                interviews.YearsOfExperience = _object.YearsOfExperience.Value;
+            }
+            else
+            {
+                interviews.YearsOfExperience = null;
+            }
+            //_____________________________________________________________
+            if (_object.On_Boarding.HasValue)
+            {
+                interviews.On_Boarding = _object.On_Boarding;
+            }
+            else
+            {
+                interviews.On_Boarding = null;
+            }
+
+            /*interviews.SOWRequirementId = _object.SOWRequirement;*/
+            interviews.Name = _object.Name;
+            interviews.InterviewDate = _object.InterviewDate;
+            interviews.YearsOfExperience = _object.YearsOfExperience;
+            /*interviews.StatusId = _object.Status;*/
+            interviews.On_Boarding = _object.On_Boarding;
+            /*interviews.Recruiter = _object.Recruiter;*/
+            interviews.IsActive = _object.IsActive;
+            interviews.CreatedBy = _object.CreatedBy;
+            interviews.CreatedDate = _object.CreatedDate;
+            interviews.UpdatedBy = _object.UpdatedBy;
+            interviews.UpdatedDate = _object.UpdatedDate;           
 
             _context.TblInterviews.Add(interviews);
             await _context.SaveChangesAsync();
@@ -122,41 +190,111 @@ namespace InterviewApi.Services
 
         public async Task<InterviewsDTO> Update(InterviewsDTO _object)
         {
+            var interviews = new Interviews();
             var interview = await _context.TblInterviews.FindAsync(_object.Id);
 
             if (interview == null)
                 throw new KeyNotFoundException("Interview not found");
 
-           /* var sowRequirement = await _context.TblSOWRequirement
-               .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
+            /* var sowRequirement = await _context.TblSOWRequirement
+                .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
 
-            if (sowRequirement == null)
-                throw new KeyNotFoundException("SOWRequirement not found");
+             if (sowRequirement == null)
+                 throw new KeyNotFoundException("SOWRequirement not found");
 
-            var status = await _context.TblInterviewStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
+             var status = await _context.TblInterviewStatus
+                .FirstOrDefaultAsync(d => d.Status == _object.Status);
 
-            if (status == null)
-                throw new KeyNotFoundException("status not found");
+             if (status == null)
+                 throw new KeyNotFoundException("status not found");
 
-            var recruiter = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
+             var recruiter = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
 
-            if (recruiter == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
+             if (recruiter == null)
+                 throw new KeyNotFoundException("SalesContact not found");*/
 
-            interview.SOWRequirementId = _object.SOWRequirement;
-            interview.Name = _object.Name;
-            interview.InterviewDate = _object.InterviewDate;
-            interview.YearsOfExperience = _object.YearsOfExperience;
-            interview.StatusId = _object.Status;
-            interview.On_Boarding = _object.On_Boarding;
-            interview.Recruiter = _object.Recruiter;
-            interview.IsActive = _object.IsActive;
-            interview.CreatedBy = _object.CreatedBy;
-            interview.CreatedDate = _object.CreatedDate;
-            interview.UpdatedBy = _object.UpdatedBy;
-            interview.UpdatedDate = _object.UpdatedDate;
+            if (!string.IsNullOrWhiteSpace(_object.SOWRequirement))
+            {
+                var sowRequirementExists = await _context.TblSOWRequirement
+                    .AnyAsync(d => d.Id == _object.SOWRequirement);
+                if (!sowRequirementExists)
+                    throw new ArgumentException("The specified sowRequirement does not exist.");
+
+                interviews.SOWRequirementId = _object.SOWRequirement;
+            }
+            else
+            {
+                interviews.SOWRequirementId = null;
+            }
+            //_________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                var statusExists = await _context.TblInterviewStatus
+                    .AnyAsync(d => d.Id == _object.Status);
+                if (!statusExists)
+                    throw new ArgumentException("The specified status does not exist.");
+
+                interviews.StatusId = _object.Status;
+            }
+            else
+            {
+                interviews.StatusId = null;
+            }
+            //_________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Recruiter))
+            {
+                var recruiterExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Recruiter);
+                if (!recruiterExists)
+                    throw new ArgumentException("The specified recruiter does not exist.");
+
+                interviews.Recruiter = _object.Recruiter;
+            }
+            else
+            {
+                interviews.Recruiter = null;
+            }
+            //---------------------------------------------------------
+            if (_object.InterviewDate.HasValue)
+            {
+                interviews.InterviewDate = _object.InterviewDate;
+            }
+            else
+            {
+                interviews.InterviewDate = null;
+            }
+            //__________________________________________________________
+            if (_object.YearsOfExperience.HasValue && _object.YearsOfExperience > 0)
+            {
+                interviews.YearsOfExperience = _object.YearsOfExperience.Value;
+            }
+            else
+            {
+                interviews.YearsOfExperience = null;
+            }
+            //_____________________________________________________________
+            if (_object.On_Boarding.HasValue)
+            {
+                interviews.On_Boarding = _object.On_Boarding;
+            }
+            else
+            {
+                interviews.On_Boarding = null;
+            }
+
+            /*interviews.SOWRequirementId = _object.SOWRequirement;*/
+            interviews.Name = _object.Name;
+            interviews.InterviewDate = _object.InterviewDate;
+            interviews.YearsOfExperience = _object.YearsOfExperience;
+            /*interviews.StatusId = _object.Status;*/
+            interviews.On_Boarding = _object.On_Boarding;
+            /*interviews.Recruiter = _object.Recruiter;*/
+            interviews.IsActive = _object.IsActive;
+            interviews.CreatedBy = _object.CreatedBy;
+            interviews.CreatedDate = _object.CreatedDate;
+            interviews.UpdatedBy = _object.UpdatedBy;
+            interviews.UpdatedDate = _object.UpdatedDate;
 
             _context.Entry(interview).State = EntityState.Modified;
             await _context.SaveChangesAsync();

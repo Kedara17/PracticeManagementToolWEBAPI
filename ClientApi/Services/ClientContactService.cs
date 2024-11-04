@@ -72,6 +72,7 @@ namespace ClientApi.Services
 
         public async Task<ClientContactDTO> Add(ClientContactDTO clientContactDTO)
         {
+            var clientContact = new ClientContact();
             // Check if the ContactValue name already exists
             var existingContactValue = await _context.TblClientContact
                 .FirstOrDefaultAsync(t => t.ContactValue == clientContactDTO.ContactValue);
@@ -79,29 +80,54 @@ namespace ClientApi.Services
             if (existingContactValue != null)
                 throw new ArgumentException("A ContactValue with the same name already exists.");
 
-           /* var client = await _context.TblClient
-                .FirstOrDefaultAsync(e => e.Name == clientContactDTO.Client);
+            /* var client = await _context.TblClient
+                 .FirstOrDefaultAsync(e => e.Name == clientContactDTO.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
+             if (client == null)
+                 throw new KeyNotFoundException("Client not found");
 
-            var contactType = await _context.TblContactType
-               .FirstOrDefaultAsync(e => e.TypeName == clientContactDTO.ContactType);
+             var contactType = await _context.TblContactType
+                .FirstOrDefaultAsync(e => e.TypeName == clientContactDTO.ContactType);
 
-            if (contactType == null)
-                throw new KeyNotFoundException("ContactType not found");*/
+             if (contactType == null)
+                 throw new KeyNotFoundException("ContactType not found");*/
 
-            var clientContact = new ClientContact
+            if (!string.IsNullOrWhiteSpace(clientContactDTO.Client))
             {
-                ClientId = clientContactDTO.Client,
-                ContactValue = clientContactDTO.ContactValue,
-                ContactTypeId = clientContactDTO.ContactType,
-                IsActive = clientContactDTO.IsActive,
-                CreatedBy = clientContactDTO.CreatedBy,
-                CreatedDate = clientContactDTO.CreatedDate,
-                UpdatedBy = clientContactDTO.UpdatedBy,
-                UpdatedDate = clientContactDTO.UpdatedDate
-            };
+                var clientExists = await _context.TblClient
+                    .AnyAsync(c => c.Id == clientContactDTO.Client);
+                if (!clientExists)
+                    throw new ArgumentException("The specified client does not exist.");
+
+                clientContact.ClientId = clientContactDTO.Client;
+            }
+            else
+            {
+                clientContact.Client = null;
+            }
+            //_____________________________________________________________
+            if (!string.IsNullOrWhiteSpace(clientContactDTO.ContactType))
+            {
+                var contactTypeExists = await _context.TblContactType
+                    .AnyAsync(c => c.Id == clientContactDTO.ContactType);
+                if (!contactTypeExists)
+                    throw new ArgumentException("The specified contactType does not exist.");
+
+                clientContact.ContactTypeId = clientContactDTO.ContactType;
+            }
+            else
+            {
+                clientContact.ContactType = null;
+            }           
+
+            /*clientContact.ClientId = clientContactDTO.Client;*/
+            clientContact.ContactValue = clientContactDTO.ContactValue;
+            /* clientContact.ContactTypeId = clientContactDTO.ContactType;*/
+            clientContact.IsActive = clientContactDTO.IsActive;
+            clientContact.CreatedBy = clientContactDTO.CreatedBy;
+            clientContact.CreatedDate = clientContactDTO.CreatedDate;
+            clientContact.UpdatedBy = clientContactDTO.UpdatedBy;
+            clientContact.UpdatedDate = clientContactDTO.UpdatedDate;           
 
             _context.TblClientContact.Add(clientContact);
             await _context.SaveChangesAsync();
@@ -136,9 +162,24 @@ namespace ClientApi.Services
              if (contactType == null)
                  throw new KeyNotFoundException("ContactType not found");*/
 
+
+            if (!string.IsNullOrWhiteSpace(clientContactDTO.ContactType))
+            {
+                var contactTypeExists = await _context.TblContactType
+                    .AnyAsync(c => c.Id == clientContactDTO.ContactType);
+                if (!contactTypeExists)
+                    throw new ArgumentException("The specified contactType does not exist.");
+
+                clientContact.ContactTypeId = clientContactDTO.ContactType;
+            }
+            else
+            {
+                clientContact.ContactType = null;
+            }
+           
             clientContact.ClientId = clientContactDTO.Client;
             clientContact.ContactValue = clientContactDTO.ContactValue;
-            clientContact.ContactTypeId = clientContactDTO.ContactType;
+            /* clientContact.ContactTypeId = clientContactDTO.ContactType;*/
             clientContact.IsActive = clientContactDTO.IsActive;
             clientContact.CreatedBy = clientContactDTO.CreatedBy;
             clientContact.CreatedDate = clientContactDTO.CreatedDate;

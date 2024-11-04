@@ -77,6 +77,7 @@ namespace SOWApi.Services
 
         public async Task<SOWDTO> Add(SOWDTO _object)
         {
+            var sow = new SOW();
             // Check if the SOW Title already exists
             var existingSOW = await _context.TblSOW
                 .FirstOrDefaultAsync(t => t.Title == _object.Title);
@@ -84,40 +85,97 @@ namespace SOWApi.Services
             if (existingSOW != null)
                 throw new ArgumentException("A Title with the same name already exists.");
 
-           /* var client = await _context.TblClient
-               .FirstOrDefaultAsync(d => d.Name == _object.Client);
+            /* var client = await _context.TblClient
+                .FirstOrDefaultAsync(d => d.Name == _object.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
+             if (client == null)
+                 throw new KeyNotFoundException("Client not found");
 
-            var project = await _context.TblProject
-               .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
+             var project = await _context.TblProject
+                .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
 
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
+             if (project == null)
+                 throw new KeyNotFoundException("Project not found");
 
-            var status = await _context.TblSOWStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
+             var status = await _context.TblSOWStatus
+                .FirstOrDefaultAsync(d => d.Status == _object.Status);
 
-            if (status == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
+             if (status == null)
+                 throw new KeyNotFoundException("SalesContact not found");*/
 
-
-            var sow = new SOW
+            if (!string.IsNullOrWhiteSpace(_object.Client))
             {
-                Title = _object.Title,
-                ClientId = _object.Client,
-                ProjectId = _object.Project,
-                PreparedDate = _object.PreparedDate,
-                SubmittedDate = _object.SubmittedDate,
-                Status =_object.Status,
-                Comments = _object.Comments,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
-            };
+                var clientExists = await _context.TblClient
+                    .AnyAsync(d => d.Id == _object.Client);
+                if (!clientExists)
+                    throw new ArgumentException("The specified client does not exist.");
+
+                sow.ClientId = _object.Client;
+            }
+            else
+            {
+                sow.ClientId = null;
+            }
+            //____________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Project))
+            {
+                var projectExists = await _context.TblProject
+                    .AnyAsync(d => d.Id == _object.Project);
+                if (!projectExists)
+                    throw new ArgumentException("The specified project does not exist.");
+
+                sow.ProjectId = _object.Project;
+            }
+            else
+            {
+                sow.ProjectId = null;
+            }
+            //____________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                var statusExists = await _context.TblSOWStatus
+                    .AnyAsync(d => d.Id == _object.Status);
+                if (!statusExists)
+                    throw new ArgumentException("The specified status does not exist.");
+
+                sow.Status = _object.Status;
+            }
+            else
+            {
+                sow.Status = null;
+            }
+            //---------------------------------------------------------
+            if (_object.PreparedDate.HasValue)
+            {
+                sow.PreparedDate = _object.PreparedDate;
+            }
+            else
+            {
+                sow.PreparedDate = null;
+            }
+            //---------------------------------------------------------
+            if (_object.SubmittedDate.HasValue)
+            {
+                sow.SubmittedDate = _object.SubmittedDate;
+            }
+            else
+            {
+                sow.SubmittedDate = null;
+            }
+
+
+            sow.Title = _object.Title;
+           /* sow.ClientId = _object.Client;
+            sow.ProjectId = _object.Project;*/
+           /* sow.PreparedDate = _object.PreparedDate;
+            sow.SubmittedDate = _object.SubmittedDate;*/
+         /*   sow.Status = _object.Status;*/
+            sow.Comments = _object.Comments;
+            sow.IsActive = _object.IsActive;
+            sow.CreatedBy = _object.CreatedBy;
+            sow.CreatedDate = _object.CreatedDate;
+            sow.UpdatedBy = _object.UpdatedBy;
+            sow.UpdatedDate = _object.UpdatedDate;          
 
             _context.TblSOW.Add(sow);
             await _context.SaveChangesAsync();
@@ -141,30 +199,91 @@ namespace SOWApi.Services
             if (sow == null)
                 throw new KeyNotFoundException("SOW not found");
 
-           /* var client = await _context.TblClient
-              .FirstOrDefaultAsync(d => d.Name == _object.Client);
+            /* var client = await _context.TblClient
+               .FirstOrDefaultAsync(d => d.Name == _object.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
+             if (client == null)
+                 throw new KeyNotFoundException("Client not found");
 
-            var project = await _context.TblProject
-               .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
+             var project = await _context.TblProject
+                .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
 
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
+             if (project == null)
+                 throw new KeyNotFoundException("Project not found");
 
-            var status = await _context.TblSOWStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
+             var status = await _context.TblSOWStatus
+                .FirstOrDefaultAsync(d => d.Status == _object.Status);
 
-            if (status == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
+             if (status == null)
+                 throw new KeyNotFoundException("SalesContact not found");*/
+
+            if (!string.IsNullOrWhiteSpace(_object.Client))
+            {
+                var clientExists = await _context.TblClient
+                    .AnyAsync(d => d.Id == _object.Client);
+                if (!clientExists)
+                    throw new ArgumentException("The specified client does not exist.");
+
+                sow.ClientId = _object.Client;
+            }
+            else
+            {
+                sow.ClientId = null;
+            }
+            //____________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Project))
+            {
+                var projectExists = await _context.TblProject
+                    .AnyAsync(d => d.Id == _object.Project);
+                if (!projectExists)
+                    throw new ArgumentException("The specified project does not exist.");
+
+                sow.ProjectId = _object.Project;
+            }
+            else
+            {
+                sow.ProjectId = null;
+            }
+            //____________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                var statusExists = await _context.TblSOWStatus
+                    .AnyAsync(d => d.Id == _object.Status);
+                if (!statusExists)
+                    throw new ArgumentException("The specified status does not exist.");
+
+                sow.Status = _object.Status;
+            }
+            else
+            {
+                sow.Status = null;
+            }
+            //---------------------------------------------------------
+            if (_object.PreparedDate.HasValue)
+            {
+                sow.PreparedDate = _object.PreparedDate;
+            }
+            else
+            {
+                sow.PreparedDate = null;
+            }
+            //---------------------------------------------------------
+            if (_object.SubmittedDate.HasValue)
+            {
+                sow.SubmittedDate = _object.SubmittedDate;
+            }
+            else
+            {
+                sow.SubmittedDate = null;
+            }
+
 
             sow.Title = _object.Title;
-            sow.ClientId = _object.Client;
-            sow.ProjectId = _object.Project;
-            sow.PreparedDate = _object.PreparedDate;
-            sow.SubmittedDate = _object.SubmittedDate;
-            sow.Status = _object.Status;
+            /* sow.ClientId = _object.Client;
+             sow.ProjectId = _object.Project;*/
+            /* sow.PreparedDate = _object.PreparedDate;
+             sow.SubmittedDate = _object.SubmittedDate;*/
+            /*   sow.Status = _object.Status;*/
             sow.Comments = _object.Comments;
             sow.IsActive = _object.IsActive;
             sow.CreatedBy = _object.CreatedBy;

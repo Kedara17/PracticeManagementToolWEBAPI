@@ -74,6 +74,7 @@ namespace WebinarsApi.Services
 
         public async Task<WebinarsDTO> Add(WebinarsDTO _object)
         {
+            var webinars = new Webinars();
             // Check if the Webinar already exists
             var existingWebinar = await _context.TblWebinars
                 .FirstOrDefaultAsync(t => t.Title == _object.Title);
@@ -81,27 +82,63 @@ namespace WebinarsApi.Services
             if (existingWebinar != null)
                 throw new ArgumentException("A Webinar with the same name already exists.");
 
-           /* var employee = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Speaker);
+            /* var employee = await _context.TblEmployee
+                .FirstOrDefaultAsync(d => d.Name == _object.Speaker);
 
-            if (employee == null)
-                throw new KeyNotFoundException("Speaker not found");*/
+             if (employee == null)
+                 throw new KeyNotFoundException("Speaker not found");*/
 
-            var webinars = new Webinars
+            if (!string.IsNullOrWhiteSpace(_object.Speaker))
             {
+                var speakerExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Speaker);
+                if (!speakerExists)
+                    throw new ArgumentException("The specified speaker does not exist.");
 
-                Title = _object.Title,
-               /* Speaker = employee?.Id,*/
-               Speaker = _object.Speaker,
-                Status = _object.Status,
-                WebinarDate = _object.WebinarDate,
-                NumberOfAudience = _object.NumberOfAudience,
-                IsActive = _object.IsActive,
-                CreatedBy = _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
-            };
+                webinars.Speaker = _object.Speaker;
+            }
+            else
+            {
+                webinars.Speaker = null;
+            }
+            //_______________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                webinars.Status = _object.Status;
+            }
+            else
+            {
+                webinars.Status = null;
+            }
+            //________________________________________________________
+            if (_object.WebinarDate.HasValue)
+            {
+                webinars.WebinarDate = _object.WebinarDate;
+            }
+            else
+            {
+                webinars.WebinarDate = null;
+            }
+            //_________________________________________________________
+            if (_object.NumberOfAudience.HasValue && _object.NumberOfAudience > 0)
+            {
+                webinars.NumberOfAudience = _object.NumberOfAudience.Value;
+            }
+            else
+            {
+                webinars.NumberOfAudience = null;
+            }
+
+            webinars.Title = _object.Title;
+               /* webinars.Speaker = _object.Speaker;*/
+               /* webinars.Status = _object.Status;
+                webinars.WebinarDate = _object.WebinarDate;
+                webinars.NumberOfAudience = _object.NumberOfAudience;*/
+                webinars.IsActive = _object.IsActive;
+                webinars.CreatedBy = _object.CreatedBy;
+                webinars.CreatedDate = _object.CreatedDate;
+                webinars.UpdatedBy = _object.UpdatedBy;
+                webinars.UpdatedDate = _object.UpdatedDate;          
 
             _context.TblWebinars.Add(webinars);
             await _context.SaveChangesAsync();
@@ -124,18 +161,59 @@ namespace WebinarsApi.Services
             if (webinars == null)
                 throw new KeyNotFoundException("Webinars not found");
 
-            var speaker = await _context.TblEmployee
+            /*var speaker = await _context.TblEmployee
               .FirstOrDefaultAsync(d => d.Name == _object.Speaker);
 
             if (speaker == null)
-                throw new KeyNotFoundException("Speaker not found");
+                throw new KeyNotFoundException("Speaker not found");*/
 
 
+            if (!string.IsNullOrWhiteSpace(_object.Speaker))
+            {
+                var speakerExists = await _context.TblEmployee
+                    .AnyAsync(d => d.Id == _object.Speaker);
+                if (!speakerExists)
+                    throw new ArgumentException("The specified speaker does not exist.");
+
+                webinars.Speaker = _object.Speaker;
+            }
+            else
+            {
+                webinars.Speaker = null;
+            }
+            //_______________________________________________________
+            if (!string.IsNullOrWhiteSpace(_object.Status))
+            {
+                webinars.Status = _object.Status;
+            }
+            else
+            {
+                webinars.Status = null;
+            }
+            //________________________________________________________
+            if (_object.WebinarDate.HasValue)
+            {
+                webinars.WebinarDate = _object.WebinarDate;
+            }
+            else
+            {
+                webinars.WebinarDate = null;
+            }
+            //_________________________________________________________
+            if (_object.NumberOfAudience.HasValue && _object.NumberOfAudience > 0)
+            {
+                webinars.NumberOfAudience = _object.NumberOfAudience.Value;
+            }
+            else
+            {
+                webinars.NumberOfAudience = null;
+            }
+           
             webinars.Title = _object.Title;
-            webinars.Speaker = speaker?.Id;
-            webinars.Status = _object.Status;
-            webinars.WebinarDate = _object.WebinarDate;
-            webinars.NumberOfAudience = _object.NumberOfAudience;
+            /* webinars.Speaker = _object.Speaker;*/
+            /* webinars.Status = _object.Status;
+             webinars.WebinarDate = _object.WebinarDate;
+             webinars.NumberOfAudience = _object.NumberOfAudience;*/
             webinars.IsActive = _object.IsActive;
             webinars.CreatedBy = _object.CreatedBy;
             webinars.CreatedDate = _object.CreatedDate;

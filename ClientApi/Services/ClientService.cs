@@ -76,6 +76,8 @@ namespace ClientApi.Services
 
         public async Task<ClientDTO> Add(ClientDTO _object)
         {
+            var client = new Client();
+
             // Check if the Client name already exists
             var existingClient = await _context.TblClient
                 .FirstOrDefaultAsync(t => t.Name == _object.Name);
@@ -83,27 +85,50 @@ namespace ClientApi.Services
             if (existingClient != null)
                 throw new ArgumentException("A client with the same name already exists.");
 
+           
+            if (!string.IsNullOrWhiteSpace(_object.LineofBusiness))
+            {
+                client.LineofBusiness = _object.LineofBusiness;
+            }
+            else
+            {
+                client.LineofBusiness = null;
+            }
+            //_____________________________________________________
+
             /*var salesEmployee = await _context.TblEmployee
                 .FirstOrDefaultAsync(d => d.Name == _object.SalesEmployee);
 
             if (salesEmployee == null)
                 throw new KeyNotFoundException("SalesEmployee not found");*/
 
-            var client = new Client
+            if (!string.IsNullOrWhiteSpace(_object.SalesEmployee))
             {
-                Name = _object.Name,
-                LineofBusiness = _object.LineofBusiness,
-                SalesEmployee = _object.SalesEmployee,
-                Country = _object.Country,
-                City = _object.City,
-                State = _object.State,
-                Address = _object.Address,
-                IsActive = _object.IsActive,
-                CreatedBy= _object.CreatedBy,
-                CreatedDate = _object.CreatedDate,
-                UpdatedBy = _object.UpdatedBy,
-                UpdatedDate = _object.UpdatedDate
-            };
+                // Verify that the department exists before assigning it
+                var salesEmployeeExists = await _context.TblDepartment
+                    .AnyAsync(d => d.Id == _object.SalesEmployee);
+                if (!salesEmployeeExists)
+                    throw new ArgumentException("The specified SalesEmployee does not exist.");
+
+                client.SalesEmployee = _object.SalesEmployee;
+            }
+            else
+            {
+                client.SalesEmployee = null; // Allow null if department is not specified
+            }
+
+            client.Name = _object.Name;
+           /* client.LineofBusiness = _object.LineofBusiness;
+            client.SalesEmployee = _object.SalesEmployee;*/
+            client.Country = _object.Country;
+            client.City = _object.City;
+            client.State = _object.State;
+            client.Address = _object.Address;
+            client.IsActive = _object.IsActive;
+            client.CreatedBy = _object.CreatedBy;
+            client.CreatedDate = _object.CreatedDate;
+            client.UpdatedBy = _object.UpdatedBy;
+            client.UpdatedDate = _object.UpdatedDate;
 
             _context.TblClient.Add(client);
             await _context.SaveChangesAsync();
@@ -126,15 +151,41 @@ namespace ClientApi.Services
             if (client == null)
                 throw new KeyNotFoundException("Client not found");
 
+
+            if (!string.IsNullOrWhiteSpace(_object.LineofBusiness))
+            {
+                client.LineofBusiness = _object.LineofBusiness;
+            }
+            else
+            {
+                client.LineofBusiness = null;
+            }
+            //________________________________________________________
+
             /*var salesEmployee = await _context.TblEmployee
                 .FirstOrDefaultAsync(d => d.Name == _object.SalesEmployee);
 
             if (salesEmployee == null)
                 throw new KeyNotFoundException("SalesEmployee not found");*/
 
+            if (!string.IsNullOrWhiteSpace(_object.SalesEmployee))
+            {
+                // Verify that the department exists before assigning it
+                var salesEmployeeExists = await _context.TblDepartment
+                    .AnyAsync(d => d.Id == _object.SalesEmployee);
+                if (!salesEmployeeExists)
+                    throw new ArgumentException("The specified SalesEmployee does not exist.");
+
+                client.SalesEmployee = _object.SalesEmployee;
+            }
+            else
+            {
+                client.SalesEmployee = null; // Allow null if department is not specified
+            }
+
             client.Name = _object.Name;
-            client.LineofBusiness = _object.LineofBusiness;
-            client.SalesEmployee = _object.SalesEmployee;
+            /* client.LineofBusiness = _object.LineofBusiness;
+             client.SalesEmployee = _object.SalesEmployee;*/
             client.Country = _object.Country;
             client.City = _object.City;
             client.State = _object.State;

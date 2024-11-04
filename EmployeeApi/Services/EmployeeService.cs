@@ -127,51 +127,51 @@ namespace EmployeeApi.Services
             }
 
             var employee = new Employee();
-            
+
             //----------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.Designation))
             {
-                var designation = await _context.TblDesignation
-                    .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
-                if (designation == null)
-                {
-                    throw new ArgumentException($"Invalid designation. Please enter a valid designation.");
-                }
-                employee.DesignationId = designation.Id;
+                // Verify that the department exists before assigning it
+                var designationExists = await _context.TblDesignation
+                    .AnyAsync(d => d.Id == empDto.Designation);
+                if (!designationExists)
+                    throw new ArgumentException("The specified designation does not exist.");
+
+                employee.DesignationId = empDto.Designation;
             }
             else
             {
-                employee.DepartmentId = null;
+                employee.DesignationId = null; // Allow null if department is not specified
             }
             //---------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.Department))
             {
-                var department = await _context.TblDepartment
-                    .FirstOrDefaultAsync(d => d.Name == empDto.Department);
-                if (department == null)
-                {
-                    throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
-                }
-                employee.DepartmentId = department.Id;
+                // Verify that the department exists before assigning it
+                var departmentExists = await _context.TblDepartment
+                    .AnyAsync(d => d.Id == empDto.Department);
+                if (!departmentExists)
+                    throw new ArgumentException("The specified department does not exist.");
+
+                employee.DepartmentId = empDto.Department;
             }
             else
             {
-                employee.DepartmentId = null;
+                employee.DepartmentId = null; // Allow null if department is not specified
             }
             //------------------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.ReportingTo))
             {
+                // Verify that the department exists before assigning it
                 var reportingTo = await _context.TblEmployee
-                    .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
-                if (reportingTo == null)
-                {
-                    throw new ArgumentException($"Invalid ReportingTo name. Please enter a valid ReportingTo name.");
-                }
-                employee.ReportingTo = reportingTo.Id;
+                    .AnyAsync(d => d.Id == empDto.ReportingTo);
+                if (!reportingTo)
+                    throw new ArgumentException("The specified reportingTo does not exist.");
+
+                employee.ReportingTo = empDto.ReportingTo;
             }
             else
             {
-                employee.ReportingTo = null;
+                employee.ReportingTo = null; // Allow null if department is not specified
             }
             //---------------------------------------------------------
             if (empDto.JoiningDate.HasValue)
@@ -221,17 +221,17 @@ namespace EmployeeApi.Services
             //---------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.Role))
             {
+                // Verify that the department exists before assigning it
                 var role = await _context.TblRole
-                    .FirstOrDefaultAsync(d => d.RoleName == empDto.Role);
-                if (role == null)
-                {
-                    throw new ArgumentException($"Invalid Role. Please enter a valid Role.");
-                }
-                employee.Role = role.Id;
+                    .AnyAsync(d => d.Id == empDto.Role);
+                if (!role)
+                    throw new ArgumentException("The specified role does not exist.");
+
+                employee.Role = empDto.Role;
             }
             else
             {
-                employee.ReportingTo = null;
+                employee.Role = null; // Allow null if department is not specified
             }
             //---------------------------------------------------------
             employee.Name = empDto.Name;
@@ -331,48 +331,47 @@ namespace EmployeeApi.Services
             //----------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.Designation))
             {
-                var designation = await _context.TblDesignation
-                    .FirstOrDefaultAsync(d => d.Name == empDto.Designation);
-                if (designation == null)
-                {
-                    throw new ArgumentException($"Invalid designation. Please enter a valid designation.");
-                }
-                employee.DesignationId = designation.Id;
+                // Verify that the department exists before assigning it
+                var designationExists = await _context.TblDesignation
+                    .AnyAsync(d => d.Id == empDto.Designation);
+                if (!designationExists)
+                    throw new ArgumentException("The specified designation does not exist.");
+
+                employee.DesignationId = empDto.Designation;
             }
             else
             {
-                employee.DepartmentId = null;
+                employee.DesignationId = null; // Allow null if department is not specified
             }
             //---------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.Department))
             {
-                var department = await _context.TblDepartment
-                    .FirstOrDefaultAsync(d => d.Name == empDto.Department);
-                if (department == null)
-                {
-                    throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
-                }
+                // Verify that the department exists before assigning it
+                var departmentExists = await _context.TblDepartment
+                    .AnyAsync(d => d.Id == empDto.Department);
+                if (!departmentExists)
+                    throw new ArgumentException("The specified department does not exist.");
 
-                employee.DepartmentId = department.Id;
+                employee.DepartmentId = empDto.Department;
             }
             else
             {
-                employee.DepartmentId = null;
+                employee.DepartmentId = null; // Allow null if department is not specified
             }
             //------------------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.ReportingTo))
             {
+                // Verify that the department exists before assigning it
                 var reportingTo = await _context.TblEmployee
-                    .FirstOrDefaultAsync(d => d.Name == empDto.ReportingTo);
-                if (reportingTo == null)
-                {
-                    throw new ArgumentException($"Invalid ReportingTo name. Please enter a valid ReportingTo name.");
-                }
-                employee.ReportingTo = reportingTo.Id;
-            }           
+                    .AnyAsync(d => d.Id == empDto.ReportingTo);
+                if (!reportingTo)
+                    throw new ArgumentException("The specified reportingTo does not exist.");
+
+                employee.ReportingTo = empDto.ReportingTo;
+            }
             else
             {
-                employee.ReportingTo = null;
+                employee.ReportingTo = null; // Allow null if department is not specified
             }
             //---------------------------------------------------------
             if (empDto.JoiningDate.HasValue)
@@ -420,19 +419,19 @@ namespace EmployeeApi.Services
                 employee.PhoneNo = null;
             }
             //---------------------------------------------------------
-            if (!string.IsNullOrWhiteSpace(empDto.Role))
+             if (!string.IsNullOrWhiteSpace(empDto.Role))
             {
+                // Verify that the department exists before assigning it
                 var role = await _context.TblRole
-                    .FirstOrDefaultAsync(d => d.RoleName == empDto.Role);
-                if (role == null)
-                {
-                    throw new ArgumentException($"Invalid Role. Please enter a valid Role.");
-                }
-                employee.Role = role.Id;
+                    .AnyAsync(d => d.Id == empDto.Role);
+                if (!role)
+                    throw new ArgumentException("The specified role does not exist.");
+
+                employee.Role = empDto.Role;
             }
             else
             {
-                employee.Role = null;
+                employee.Role = null; // Allow null if department is not specified
             }
             //---------------------------------------------------------
             employee.Name = empDto.Name;

@@ -84,8 +84,8 @@ namespace DataServices.Models
         [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
         [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string Name { get; set; }
-        [Required]
-        [StringLength(36)]
+       /* [Required]
+        [StringLength(36)]*/
         public string? Designation { get; set; }
         [Required]
         [MinLength(4)]
@@ -97,7 +97,7 @@ namespace DataServices.Models
         [EmailAddress]
         [EmailDomain("miraclesoft.com", ErrorMessage = "Email must contain 'miraclesoft.com'.")]
         public string EmailId { get; set; }
-        [Required]
+       /* [Required]*/
         public string? Department { get; set; }
         public string[] Technology { get; set; }
         public string? ReportingTo { get; set; }
