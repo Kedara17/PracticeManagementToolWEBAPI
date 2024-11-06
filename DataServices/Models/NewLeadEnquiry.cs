@@ -29,18 +29,43 @@ namespace DataServices.Models
 
     public class NewLeadEnquiryDTO : AuditData
     {
-        public string? EmployeeID { get; set; }
-        public string? AssignTo { get; set; }
+        [StringLength(36)]
+        public string EmployeeID { get; set; }
+        [StringLength(36)]
+        public string AssignTo { get; set; }
         [NotMapped]
         public string[] Technology { get; set; }
         [NotMapped]
         public string FileName { get; set; }
+
+        [Required(ErrorMessage = "The Name field is required.")]
+        [MinLength(3)]
+        [MaxLength(50)]
+        [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? CompanyName { get; set; }
+        [Required(ErrorMessage = "The Name field is required.")]
+        [MinLength(3)]
+        [MaxLength(50)]
+        [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? CompanyRepresentative { get; set; }
+        [Required(ErrorMessage = "The Name field is required.")]
+        [MinLength(3)]
+        [MaxLength(50)]
+        [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? RepresentativeDesignation { get; set; }
+        [Required(ErrorMessage = "The Name field is required.")]
+        [MinLength(3)]
+        [MaxLength(50)]
+        [StringLength(50, ErrorMessage = "The Name cannot exceed 50 characters.")]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
         public string? Requirement { get; set; }
         public DateTime? EnquiryDate { get; set; }
+        [StringLength(50)]
         public string? Status { get; set; }
+        [StringLength(500)]
         public string? Comments { get; set; }
 
     }

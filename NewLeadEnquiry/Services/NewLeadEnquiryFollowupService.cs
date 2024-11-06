@@ -9,11 +9,13 @@ namespace NewLeadApi.Services
     {
         private readonly IRepository<NewLeadEnquiryFollowup> _repository;
         private readonly DataBaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NewLeadEnquiryFollowupService(IRepository<NewLeadEnquiryFollowup> repository, DataBaseContext context)
+        public NewLeadEnquiryFollowupService(IRepository<NewLeadEnquiryFollowup> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _repository = repository;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<NewLeadEnquiryFollowupDTO>> GetAll()
@@ -64,17 +66,9 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryFollowupDTO> Add(NewLeadEnquiryFollowupDTO dto)
         {
+            var leadFollowUp = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+
             var newFollowup = new NewLeadEnquiryFollowup();
-
-            var newLeadEnquiryID = await _context.TblNewLeadEnquiry
-             .FirstOrDefaultAsync(d => d.Id == dto.NewLeadEnquiryID);
-            if (newLeadEnquiryID == null)
-                throw new KeyNotFoundException("NewLeadEnquiryID not found");
-
-            var assignTo = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
-            if (assignTo == null)
-                throw new KeyNotFoundException("AssignTo not found");
 
             newFollowup.Id = dto.Id;
             newFollowup.NewLeadEnquiryID = dto.NewLeadEnquiryID;
@@ -84,7 +78,7 @@ namespace NewLeadApi.Services
             newFollowup.IsActive = dto.IsActive;
             newFollowup.CreatedBy = dto.CreatedBy;
             newFollowup.CreatedDate = dto.CreatedDate;
-            newFollowup.UpdatedBy = dto.UpdatedBy;
+            newFollowup.UpdatedBy = leadFollowUp;
             newFollowup.UpdatedDate = dto.UpdatedDate;
 
             dto.Id = newFollowup.Id;
@@ -95,22 +89,11 @@ namespace NewLeadApi.Services
         
         public async Task<NewLeadEnquiryFollowupDTO> Update(NewLeadEnquiryFollowupDTO dto)
         {
+            var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadFollowUp")?.Value;
             // Check if the follow-up ID exists
             var followup = await _context.TblNewLeadEnquireFollowup.FindAsync(dto.Id);
             if (followup == null)
                 throw new KeyNotFoundException("Followup not found.");
-
-            // Validate NewLeadEnquiryID exists
-            var newLeadEnquiry = await _context.TblNewLeadEnquiry
-                .FindAsync(dto.NewLeadEnquiryID);
-            if (newLeadEnquiry == null)
-                throw new KeyNotFoundException("NewLeadEnquiryID not found.");
-
-            // Validate AssignTo exists in the Employee table
-            var assignTo = await _context.TblEmployee
-                .FindAsync(dto.AssignTo);
-            if (assignTo == null)
-                throw new KeyNotFoundException("AssignTo not found.");
 
             // Update followup fields
             followup.Id = dto.Id;
@@ -121,7 +104,7 @@ namespace NewLeadApi.Services
             followup.IsActive = dto.IsActive;
             followup.CreatedBy = dto.CreatedBy;
             followup.CreatedDate = dto.CreatedDate;
-            followup.UpdatedBy = dto.UpdatedBy;
+            followup.UpdatedBy = userName;
             followup.UpdatedDate = dto.UpdatedDate;
 
             // Set the entity state to modified

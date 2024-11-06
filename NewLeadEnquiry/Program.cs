@@ -35,6 +35,8 @@ builder.Host
 builder.Services.AddDbContext<DataBaseContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("sqlcon")));
 
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddScoped<IRepository<NewLeadEnquiry>, NewLeadEnquiryRepository>();
 builder.Services.AddScoped<INewLeadEnquiryService, NewLeadEnquiryService>();
 builder.Services.AddScoped<IRepository<NewLeadEnquiryTechnology>, NewLeadEnquiryTechnologyRepository>();

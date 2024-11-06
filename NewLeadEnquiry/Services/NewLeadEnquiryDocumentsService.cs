@@ -74,9 +74,9 @@ namespace NewLeadApi.Services
                 FileName = dto.FileName,
                 IsActive = true, // Default to active
                 CreatedBy = dto.CreatedBy,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = DateTime.Now,
                 UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = DateTime.UtcNow
+                UpdatedDate = DateTime.Now
             };
 
             await _context.TblNewLeadEnquiryDocuments.AddAsync(newDocument);
@@ -105,7 +105,7 @@ namespace NewLeadApi.Services
             document.CreatedBy = dto.CreatedBy;
             document.CreatedDate = dto.CreatedDate;
             document.UpdatedBy = dto.UpdatedBy;
-            document.UpdatedDate = DateTime.UtcNow;
+            document.UpdatedDate = DateTime.Now;
 
             _context.Entry(document).State = EntityState.Modified;
 

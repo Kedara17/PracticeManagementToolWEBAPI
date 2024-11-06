@@ -1,6 +1,7 @@
 ﻿using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Runtime.InteropServices;
@@ -11,11 +12,13 @@ namespace NewLeadApi.Services
     {
         private readonly IRepository<NewLeadEnquiry> _repository;
         private readonly DataBaseContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NewLeadEnquiryService(IRepository<NewLeadEnquiry> repository, DataBaseContext context)
+        public NewLeadEnquiryService(IRepository<NewLeadEnquiry> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor)
         {
             _repository = repository;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<NewLeadEnquiryDTO>> GetAll()
@@ -38,6 +41,8 @@ namespace NewLeadApi.Services
                 Status = enquiry.Status,
                 Comments = enquiry.Comments,
                 IsActive = enquiry.IsActive,
+                CreatedBy = enquiry.CreatedBy,
+                CreatedDate = enquiry.CreatedDate,
                 UpdatedBy = enquiry.UpdatedBy,
                 UpdatedDate = enquiry.UpdatedDate,
             }).ToList();
@@ -66,6 +71,8 @@ namespace NewLeadApi.Services
                 Status = newLeadEnquiry.Status,
                 Comments = newLeadEnquiry.Comments,
                 IsActive = newLeadEnquiry.IsActive,
+                CreatedBy = newLeadEnquiry.CreatedBy,
+                CreatedDate = newLeadEnquiry.CreatedDate,
                 UpdatedBy = newLeadEnquiry.UpdatedBy,
                 UpdatedDate = newLeadEnquiry.UpdatedDate,
             };
@@ -73,17 +80,16 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryDTO> Add(NewLeadEnquiryDTO dto)
         {
+            var leadEnquiry = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+
             var newLeadEnquiry = new NewLeadEnquiry();
 
-            var employeeId = await _context.TblEmployee
-              .FirstOrDefaultAsync(d => d.Id == dto.EmployeeID);
-            if (employeeId == null)
-                throw new KeyNotFoundException("Employee not found");
+            // Check if the Enquiry name already exists
+                 var existingEnquiry = await _context.TblEmployee
+                .FirstOrDefaultAsync(t => t.Name == dto.CompanyName);
 
-            var assignTo = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
-            if (assignTo == null)
-                throw new KeyNotFoundException("AssignTo not found");
+            if (existingEnquiry != null)
+                throw new ArgumentException("A enquiry with the same name already exists.");
 
             newLeadEnquiry.CompanyName = dto.CompanyName;
             newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
@@ -95,10 +101,8 @@ namespace NewLeadApi.Services
             newLeadEnquiry.Status = dto.Status;
             newLeadEnquiry.Comments = dto.Comments;
             newLeadEnquiry.IsActive = true; // Assuming new enquiries are active by default
-            newLeadEnquiry.CreatedBy = dto.CreatedBy;
-            newLeadEnquiry.CreatedDate = DateTime.UtcNow;
-            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
-            newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
+            newLeadEnquiry.CreatedBy = leadEnquiry;
+            newLeadEnquiry.CreatedDate = DateTime.Now;           
 
             dto.Id = newLeadEnquiry.Id;
             await _context.TblNewLeadEnquiry.AddAsync(newLeadEnquiry);
@@ -183,20 +187,22 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryDTO> Update(NewLeadEnquiryDTO dto)
         {
+
+            var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadEnquiry")?.Value;
+
+            // Check if the Enquiry name already exists
+            var existingEnquiry = await _context.TblClient
+               .FirstOrDefaultAsync(t => t.Name == dto.CompanyName);
+
+            if (existingEnquiry != null)
+                throw new ArgumentException("A Enquiry with the same name already exists.");
+
             var newLeadEnquiry = await _context.TblNewLeadEnquiry.FindAsync(dto.Id);
             if (newLeadEnquiry == null)
             {
                 throw new KeyNotFoundException($"Lead Enquiry not found for ID: {dto.Id}");
             }
 
-            var employeeId = await _context.TblEmployee.FindAsync(dto.EmployeeID);
-            if (employeeId == null)
-                throw new KeyNotFoundException("EmployeeID not found");
-
-            var assignTo = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Id == dto.AssignTo);
-            if (assignTo == null)
-                throw new KeyNotFoundException("AssignTo not found");
 
             newLeadEnquiry.CompanyName = dto.CompanyName;
             newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
@@ -205,9 +211,9 @@ namespace NewLeadApi.Services
             newLeadEnquiry.EnquiryDate = dto.EnquiryDate;
             newLeadEnquiry.Status = dto.Status;
             newLeadEnquiry.Comments = dto.Comments;
-            newLeadEnquiry.IsActive = dto.IsActive;
-            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
-            newLeadEnquiry.UpdatedDate = DateTime.UtcNow;
+            newLeadEnquiry.IsActive = dto.IsActive;           
+            newLeadEnquiry.UpdatedBy = userName;
+            newLeadEnquiry.UpdatedDate = DateTime.Now;
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(dto.FileName))

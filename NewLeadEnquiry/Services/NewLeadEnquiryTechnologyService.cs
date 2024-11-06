@@ -86,9 +86,9 @@ namespace LeadEnquiryApi.Services
                 TechnologyID = technology.Id,
                 IsActive = true,
                 CreatedBy = dto.CreatedBy,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = DateTime.Now,
                 UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = DateTime.UtcNow
+                UpdatedDate = DateTime.Now
             };
             _context.TblNewLeadEnquiryTechnology.Add(newleadenquiryTechnology);
             await _context.SaveChangesAsync();
