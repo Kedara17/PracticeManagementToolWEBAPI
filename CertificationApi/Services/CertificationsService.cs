@@ -9,6 +9,7 @@ using DataServices.Models;
 using DataServices.Repositories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace CertificationsApi.Services
 {
@@ -16,11 +17,14 @@ namespace CertificationsApi.Services
     {
         private readonly IRepository<Certifications> _repository;
         private readonly DataBaseContext _context;
-
-        public CertificationsService(IRepository<Certifications> repository, DataBaseContext context)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger<CertificationsService> _logger;
+        public CertificationsService(IRepository<Certifications> repository, DataBaseContext context, IHttpContextAccessor httpContextAccessor, ILogger<CertificationsService> logger)
         {
             _repository = repository;
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         // Get all Certifications
@@ -54,6 +58,7 @@ namespace CertificationsApi.Services
         // Get Certification by ID
         public async Task<CertificationsDTO> Get(string id)
         {
+            _logger.LogInformation("Fetching Certificate with id: {Id}", id);
             var certification = await _context.TblCertifications
                 .Include(t => t.Employee) // Include Employee to get Employee details
                 .FirstOrDefaultAsync(t => t.Id == id);
@@ -81,10 +86,13 @@ namespace CertificationsApi.Services
         // Add new Certification
         public async Task<CertificationsDTO> Add(CertificationsDTO certificationsDto)
         {
+            _logger.LogInformation("Adding a new certificate with name: {Name}", _object.Name);
+            // Check if the certificate name already exists
             var employee = await _context.TblEmployee.FirstOrDefaultAsync(e => e.Id == certificationsDto.EmployeeId);
 
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
+            var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
 
             var certification = new Certifications
             {
@@ -94,11 +102,10 @@ namespace CertificationsApi.Services
                 ValidTill = certificationsDto.ValidTill,
                 Status = certificationsDto.Status,
                 Comments = certificationsDto.Comments,
-                IsActive = certificationsDto.IsActive,
-                CreatedBy = certificationsDto.CreatedBy,
-                CreatedDate = certificationsDto.CreatedDate,
-                UpdatedBy = certificationsDto.UpdatedBy,
-                UpdatedDate = certificationsDto.UpdatedDate
+
+                IsActive = true,
+               CreatedDate = DateTime.Now,
+                 CreatedBy = employeeName,
             };
 
             _context.TblCertifications.Add(certification);
@@ -108,9 +115,14 @@ namespace CertificationsApi.Services
             return certificationsDto;
         }
 
+    
+
+
         // Update Certification
         public async Task<CertificationsDTO> Update(CertificationsDTO certificationDto)
         {
+            _logger.LogInformation("Updating department with id: {Id}", certificationDto.Id);
+            var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
             var certification = await _context.TblCertifications.FindAsync(certificationDto.Id);
 
             if (certification == null)
@@ -120,6 +132,12 @@ namespace CertificationsApi.Services
 
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
+            // Update the IsActive state if it's modified by the admin
+            if (employee.IsActive != certificationDto.IsActive)
+            {
+                employee.IsActive = certificationDto.IsActive;
+                _logger.LogInformation("Department {Id} state changed to {IsActive}", certificationDto.Id, certificationDto.IsActive);
+            }
 
             certification.Name = certificationDto.Name;
             certification.EmployeeId = employee.Id;  // Use EmployeeId
@@ -128,8 +146,8 @@ namespace CertificationsApi.Services
             certification.Status = certificationDto.Status;
             certification.Comments = certificationDto.Comments;
             certification.IsActive = certificationDto.IsActive;
-            certification.UpdatedBy = certificationDto.UpdatedBy;
-            certification.UpdatedDate = certificationDto.UpdatedDate;
+            certification.UpdatedBy = userName;
+            certification.UpdatedDate = DateTime.Now; ;
 
             _context.Entry(certification).State = EntityState.Modified;
             await _context.SaveChangesAsync();
@@ -137,9 +155,12 @@ namespace CertificationsApi.Services
             return certificationDto;
         }
 
+
+       
         // Soft delete
         public async Task<bool> Delete(string id)
         {
+            _logger.LogInformation("Deleting certificate with id: {Id}", id);
             // Retrieve the certification entity by ID
             var certification = await _context.TblCertifications.FindAsync(id);
 

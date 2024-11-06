@@ -1,5 +1,3 @@
-// program.cs
-
 using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
@@ -31,9 +29,9 @@ builder.Host
             )
     );
 
-
 builder.Services.AddDbContext<DataBaseContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("sqlcon")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("sqlcon")));
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IRepository<Certifications>, CertificationsRepository>();
 builder.Services.AddScoped<ICertificationsService, CertificationsService>();
@@ -61,7 +59,7 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
     {
-        Description = "standard authorization header using the bearer scheme (/*bearer {token}/*)",
+        Description = "Standard authorization header using the Bearer scheme (\"Bearer {token}\")",
         In = ParameterLocation.Header,
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
@@ -75,8 +73,8 @@ builder.Services.AddCors(options =>
     policy =>
     {
         policy.AllowAnyOrigin()
-    .AllowAnyMethod()
-    .AllowAnyHeader();
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
@@ -91,9 +89,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors();
-app.UseAuthentication(); // Add this line to enable authentication
+app.UseAuthentication();
 app.UseAuthorization();
-app.UseDeveloperExceptionPage();
+
 app.MapControllers();
 
 app.Run();
