@@ -1,6 +1,8 @@
 ﻿using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata;
 
@@ -84,19 +86,7 @@ namespace POCAPI.Services
              if (client == null)
                  throw new KeyNotFoundException("Client not found");*/
 
-           if (!string.IsNullOrWhiteSpace(pocDto.Client))
-            {
-                var clientExists = await _context.TblClient
-                    .AnyAsync(d => d.Id == pocDto.Client);
-                if (!clientExists)
-                    throw new ArgumentException("The specified client does not exist.");
-
-                poc.ClientId = pocDto.Client;
-            }
-            else
-            {
-                poc.ClientId = null;
-            }
+           
             //____________________________________________________________
             if (!string.IsNullOrWhiteSpace(pocDto.Status))
             {
@@ -159,50 +149,116 @@ namespace POCAPI.Services
             return pocDto;
         }
 
-        public async Task<string> UploadFileAsync(POCDocumentDTO pocdoc)
+        [HttpPost]
+        public async Task<string> UploadFileAsync(POCDocumentDTO pocDto)
         {
-            string filePath = "";
+            // Generate the filename with the original document name and current date.
+            var filename = Path.GetFileNameWithoutExtension(pocDto.Document.FileName) + Path.GetExtension(pocDto.Document.FileName);
+
             try
             {
-                // Check if the file is not empty
-                if (pocdoc.Document.Length > 0)
+                // Get the file extension
+                var extension = Path.GetExtension(filename);
+
+                // Define the upload directory path
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads\\Documents");
+
+                // Create the directory if it does not exist
+                if (!Directory.Exists(filepath))
                 {
-                    var file = pocdoc.Document;
-                    filePath = Path.GetFullPath($"C:\\Users\\rneerukonda1\\Desktop\\UploadProfiles\\UPLOADEDFILES\\NewFile\\{file.FileName}");
-
-                    // Save file to the specified path
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-                                       
-                    if (!string.IsNullOrEmpty(pocdoc.Id))
-                    {
-                        var poc = await Get(pocdoc.Id);
-
-                        if (poc != null)
-                        {
-                            poc.Document = file.FileName;
-                            await Update(poc);
-                        }
-                    }
-                    else
-                    {
-                        return file.FileName;
-                    }
+                    Directory.CreateDirectory(filepath);
                 }
-                else
+
+                // Combine the directory and filename for the full path
+                var completepath = Path.Combine(filepath, filename);
+
+                // Save the file
+                using (var stream = new FileStream(completepath, FileMode.Create))
                 {
-                    throw new Exception("The uploaded file is empty.");
+                    await pocDto.Document.CopyToAsync(stream);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while uploading the file: " + ex.Message);
+                // Log or handle the exception as needed
+                Console.WriteLine(ex.Message);
+            }
+            return filename;
+        }
+
+        [HttpGet("download")]
+        public async Task<FileContentResult> DownloadFileAsync(string filename)
+        {
+            // Construct the full file path
+            var completePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads\\Documents", filename);
+
+            // Check if the file exists
+            if (!System.IO.File.Exists(completePath))
+            {
+                return null; // Return null if file does not exist
             }
 
-            return filePath;
+            // Determine the content type based on the file extension
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(completePath, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            // Read the file as a byte array
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(completePath);
+
+            // Return the file as FileContentResult
+            return new FileContentResult(fileBytes, contentType)
+            {
+                FileDownloadName = filename
+            };
         }
+            
+        /*       public async Task<string> UploadFileAsync(POCDocumentDTO pocdoc)
+               {
+                   string filePath = "";
+                   try
+                   {
+                       // Check if the file is not empty
+                       if (pocdoc.Document.Length > 0)
+                       {
+                           var file = pocdoc.Document;
+                           filePath = Path.GetFullPath($"C:\\Users\\rneerukonda1\\Desktop\\UploadProfiles\\UPLOADEDFILES\\NewFile\\{file.FileName}");
+
+                           // Save file to the specified path
+                           using (var stream = System.IO.File.Create(filePath))
+                           {
+                               await file.CopyToAsync(stream);
+                           }
+
+                           if (!string.IsNullOrEmpty(pocdoc.Id))
+                           {
+                               var poc = await Get(pocdoc.Id);
+
+                               if (poc != null)
+                               {
+                                   poc.Document = file.FileName;
+                                   await Update(poc);
+                               }
+                           }
+                           else
+                           {
+                               return file.FileName;
+                           }
+                       }
+                       else
+                       {
+                           throw new Exception("The uploaded file is empty.");
+                       }
+                   }
+                   catch (Exception ex)
+                   {
+                       throw new Exception("An error occurred while uploading the file: " + ex.Message);
+                   }
+
+                   return filePath;
+               }*/
 
         public async Task<POCDTO> Update(POCDTO pocDto)
         {
@@ -219,18 +275,55 @@ namespace POCAPI.Services
             if (pocData == null)
                 throw new KeyNotFoundException("Poc not found");
 
-          /*  var client = await _context.TblClient
-                .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
+            /*  var client = await _context.TblClient
+                  .FirstOrDefaultAsync(d => d.Name == pocDto.Client);
 
-            if (client == null)
-                throw new KeyNotFoundException("Author not found");*/
+              if (client == null)
+                  throw new KeyNotFoundException("Author not found");*/
+
+            //____________________________________________________________
+            if (!string.IsNullOrWhiteSpace(pocDto.Status))
+            {
+                poc.Status = pocDto.Status;
+            }
+            else
+            {
+                poc.Status = null;
+            }
+            //____________________________________________________________
+            if (pocDto.TargetDate.HasValue)
+            {
+                poc.TargetDate = pocDto.TargetDate;
+            }
+            else
+            {
+                poc.TargetDate = null;
+            }
+            //_____________________________________________________________
+            if (pocDto.CompletedDate.HasValue)
+            {
+                poc.CompletedDate = pocDto.CompletedDate;
+            }
+            else
+            {
+                poc.CompletedDate = null;
+            }
+            //____________________________________________________________
+            if (!string.IsNullOrWhiteSpace(pocDto.Document))
+            {
+                poc.Document = pocDto.Document;
+            }
+            else
+            {
+                poc.Document = null;
+            }
 
             poc.Title = pocDto.Title;
             poc.ClientId = pocDto.Client;
-            poc.Status = pocDto.Status;
-            poc.TargetDate = pocDto.TargetDate;
-            poc.CompletedDate = pocDto.CompletedDate;
-            poc.Document= pocDto.Document;
+            /* poc.Status = pocDto?.Status;
+             poc.TargetDate = pocDto.TargetDate;
+             poc.CompletedDate = pocDto.CompletedDate;
+             poc.Document = pocDto.Document;*/
             poc.IsActive = pocDto.IsActive;
             poc.CreatedBy = pocDto.CreatedBy;
             poc.CreatedDate = pocDto.CreatedDate;
