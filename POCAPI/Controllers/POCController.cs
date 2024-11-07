@@ -104,6 +104,19 @@ namespace POCAPI.Controllers
             }
         }
 
+        [HttpGet("download")]
+        public async Task<IActionResult> DownloadFile([FromQuery] string filename)
+        {
+            var fileResult = await _Service.DownloadFileAsync(filename);
+
+            if (fileResult == null)
+            {
+                return NotFound("File not found.");
+            }
+
+            return fileResult;
+        }
+
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Update(string id, [FromBody] POCDTO _object)
