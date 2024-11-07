@@ -115,13 +115,6 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Technology with id: {Id} not found", id);
                 return NotFound();
             }
-
-            // Only admins can reactivate inactive records
-            if (!existingTechnology.IsActive && !User.IsInRole("Admin"))
-            {
-                _logger.LogWarning("User without admin privileges attempted to reactivate technology with id: {Id}", id);
-                return Forbid();
-            }
             // Check if technology name is unique
             var technologyByName = await _technologyService.Get(updateDto.Name);
             if (technologyByName != null && technologyByName.Id != id)
@@ -134,7 +127,7 @@ namespace TechnologyApi.Controllers
 
             try
             {
-                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department, IsActive = updateDto.IsActive };
+                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department};
                 await _technologyService.Update(technologyDto);
             }
             catch (KeyNotFoundException ex)
@@ -148,19 +141,27 @@ namespace TechnologyApi.Controllers
 
         [HttpPatch("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteTechnology(string id)
+        public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Deleting technology with id: {Id}", id);
+            _logger.LogInformation("Toggling active status for Technology with id: {Id}", id);
 
-            var result = await _technologyService.Delete(id);
-
-            if (!result)
+            try
             {
-                _logger.LogWarning("Technology with id: {Id} not found", id);
-                return NotFound();
+                bool isActive = await _technologyService.Delete(id);
+                _logger.LogInformation("Technology with id: {Id} is now {Status}", id, isActive ? "Active" : "Inactive");
+                return Ok(new { id, IsActive = isActive });
             }
-
-            return NoContent();
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for Technology with id: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
     }
 }

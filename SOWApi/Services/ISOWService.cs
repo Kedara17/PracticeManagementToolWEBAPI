@@ -9,6 +9,5 @@ namespace SOWApi.Services
         Task<SOWDTO> Add(SOWDTO sow);
         Task<SOWDTO> Update(SOWDTO sow);
         Task<bool> Delete(string id);
-        public Task Activate(string id);
     }
 }

@@ -83,16 +83,6 @@ namespace TechnologyApi.Services
             // Check if a department name is provided
             if (!string.IsNullOrWhiteSpace(technologyDto.Department))
             {
-                // Look for the department in the database
-                /*var department = await _context.TblDepartment
-                    .FirstOrDefaultAsync(d => d.Name == technologyDto.Department);
-
-                // If department is not found, throw an exception and provide valid department names
-                if (department == null)
-                {
-                    throw new ArgumentException($"Invalid department name. Please enter a valid department name.");
-                }
-*/
                 technology.DepartmentId = technologyDto.Id;
             }
             else
@@ -147,13 +137,6 @@ namespace TechnologyApi.Services
             }
 
             technology.Name = technologyDto.Name;
-
-            // Update the IsActive state if it's modified by the admin
-            if (technology.IsActive != technologyDto.IsActive)
-            {
-                technology.IsActive = technologyDto.IsActive;
-                _logger.LogInformation("Department {Id} state changed to {IsActive}", technologyDto.Id, technologyDto.IsActive);
-            }
             technology.UpdatedBy = userName;
             technology.UpdatedDate = DateTime.Now;
 
@@ -162,18 +145,22 @@ namespace TechnologyApi.Services
 
             return technologyDto;
         }
-
         public async Task<bool> Delete(string id)
         {
-            _logger.LogInformation("Deleting technology with id: {Id}", id);
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
+            var technology= await _context.TblTechnology.FindAsync(id);
+            if (technology == null)
             {
-                throw new ArgumentException($"with ID {id} not found.");
+                throw new KeyNotFoundException("Technology not found");
             }
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
+
+            // Toggle the IsActive status
+            technology.IsActive = !technology.IsActive;
+
+            // Save the changes
+            _context.Entry(technology).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return technology.IsActive;
         }
         public async Task<TechnologyDTO> GetByName(string name)
         {

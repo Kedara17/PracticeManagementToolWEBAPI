@@ -150,27 +150,20 @@ namespace WebinarsApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            // Check if the technology exists
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
-            {
-                throw new ArgumentException($"with ID {id} not found.");
-            }
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
-        }
-
-        public async Task Activate(string id)
-        {
             var webinar = await _context.TblWebinars.FindAsync(id);
-
             if (webinar == null)
+            {
                 throw new KeyNotFoundException("Webinar not found");
+            }
 
-            webinar.IsActive = true;
+            // Toggle the IsActive status
+            webinar.IsActive = !webinar.IsActive;
+
+            // Save the changes
             _context.Entry(webinar).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            return webinar.IsActive;
         }
     }
 }

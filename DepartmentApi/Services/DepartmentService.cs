@@ -103,14 +103,6 @@ namespace DepartmentApi.Services
                 throw new KeyNotFoundException("Department not found");
 
             department.Name = _object.Name;
-
-            // Update the IsActive state if it's modified by the admin
-            if (department.IsActive != _object.IsActive)
-            {
-                department.IsActive = _object.IsActive;
-                _logger.LogInformation("Department {Id} state changed to {IsActive}", _object.Id, _object.IsActive);
-            }
-
             department.UpdatedBy = userName;
             department.UpdatedDate = DateTime.Now;
 
@@ -122,18 +114,20 @@ namespace DepartmentApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            _logger.LogInformation("Deleting department with id: {Id}", id);
-            // Check if the technology exists
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
+            var department = await _context.TblDepartment.FindAsync(id);
+            if (department == null)
             {
-                throw new ArgumentException($"with ID {id} not found.");
+                throw new KeyNotFoundException("Department not found");
             }
 
-            // Call repository to delete the Department
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
+            // Toggle the IsActive status
+            department.IsActive = !department.IsActive;
+
+            // Save the changes
+            _context.Entry(department).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return department.IsActive;
         }
 
         public async Task<DepartmentDTO> GetByName(string name)

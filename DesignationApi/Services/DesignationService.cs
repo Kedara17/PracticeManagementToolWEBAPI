@@ -101,14 +101,6 @@ namespace DesignationApi.Services
                 throw new KeyNotFoundException("Designation not found");
 
             designation.Name = _object.Name;
-
-            // Update the IsActive state if it's modified by the admin
-            if (designation.IsActive != _object.IsActive)
-            {
-                designation.IsActive = _object.IsActive;
-                _logger.LogInformation("Designation {Id} state changed to {IsActive}", _object.Id, _object.IsActive);
-            }
-
             designation.UpdatedBy = employeeName;
             designation.UpdatedDate = DateTime.Now;
 
@@ -117,21 +109,24 @@ namespace DesignationApi.Services
 
             return _object;
         }
-
         public async Task<bool> Delete(string id)
         {
-            _logger.LogInformation("Deleting designation with id: {Id}", id);
-            // Check if the technology exists
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
+            var designation = await _context.TblDesignation.FindAsync(id);
+            if (designation == null)
             {
-                throw new ArgumentException($"with ID {id} not found.");
+                throw new KeyNotFoundException("Designation not found");
             }
-            //return await _repository.Delete(id);
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
+
+            // Toggle the IsActive status
+            designation.IsActive = !designation.IsActive;
+
+            // Save the changes
+            _context.Entry(designation).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return designation.IsActive;
         }
+
         public async Task<DesignationDTO> GetByName(string name)
         {
             _logger.LogInformation("Fetching designation with name: {Name}", name);

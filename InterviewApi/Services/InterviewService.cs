@@ -78,25 +78,6 @@ namespace InterviewApi.Services
 
         public async Task<InterviewsDTO> Add(InterviewsDTO _object)
         {
-           /* var sowRequirement = await _context.TblSOWRequirement
-               .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
-
-            if (sowRequirement == null)
-                throw new KeyNotFoundException("SOWRequirement not found");
-
-            var status = await _context.TblInterviewStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
-
-            if (status == null)
-                throw new KeyNotFoundException("status not found");
-
-            var recruiter = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
-
-            if (recruiter == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
-
-
             var interviews = new Interviews
             {
                 SOWRequirementId = _object.SOWRequirement,
@@ -127,24 +108,6 @@ namespace InterviewApi.Services
             if (interview == null)
                 throw new KeyNotFoundException("Interview not found");
 
-           /* var sowRequirement = await _context.TblSOWRequirement
-               .FirstOrDefaultAsync(d => d.TeamSize.ToString() == _object.SOWRequirement);
-
-            if (sowRequirement == null)
-                throw new KeyNotFoundException("SOWRequirement not found");
-
-            var status = await _context.TblInterviewStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
-
-            if (status == null)
-                throw new KeyNotFoundException("status not found");
-
-            var recruiter = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == _object.Recruiter);
-
-            if (recruiter == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
-
             interview.SOWRequirementId = _object.SOWRequirement;
             interview.Name = _object.Name;
             interview.InterviewDate = _object.InterviewDate;
@@ -165,30 +128,22 @@ namespace InterviewApi.Services
 
         }
 
-
         public async Task<bool> Delete(string id)
         {
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
+            var interview = await _context.TblInterviews.FindAsync(id);
+            if (interview == null)
             {
-                throw new ArgumentException($"with ID {id} not found.");
+                throw new KeyNotFoundException("Interview not found");
             }
 
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
-        }
+            // Toggle the IsActive status
+            interview.IsActive = !interview.IsActive;
 
-        public async Task Activate(string id)
-        {
-            var interview = await _context.TblInterviews.FindAsync(id);
-
-            if (interview == null)
-                throw new KeyNotFoundException("Interview not found");
-
-            interview.IsActive = true;
+            // Save the changes
             _context.Entry(interview).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            return interview.IsActive;
         }
     }
 }

@@ -115,25 +115,9 @@ namespace DepartmentApi.Controllers
                 return BadRequest("ID mismatch.");
             }
 
-            // Retrieve the department by ID
-            var existingDepartment = await _Service.Get(id);
-
-            if (existingDepartment == null)
-            {
-                _logger.LogWarning("Department with id: {Id} not found", id);
-                return NotFound();
-            }
-
-            // Only admins can reactivate inactive records
-            if (!existingDepartment.IsActive && !User.IsInRole("Admin"))
-            {
-                _logger.LogWarning("User without admin privileges attempted to reactivate department with id: {Id}", id);
-                return Forbid();
-            }
-
             // Check if the updated name is unique (excluding the current department)
-            var departmentByName = await _Service.GetByName(updateDto.Name);
-            if (departmentByName != null && departmentByName.Id != id)
+            var existingDepartment = await _Service.GetByName(updateDto.Name);
+            if (existingDepartment != null && existingDepartment.Id != id)
             {
                 _logger.LogWarning("Department with name '{Name}' already exists", updateDto.Name);
                 return BadRequest($"Department with name '{updateDto.Name}' already exists.");
@@ -142,13 +126,8 @@ namespace DepartmentApi.Controllers
             try
             {
                 // Map the updateDto back to the original DepartmentDTO
-                var departmentDto = new DepartmentDTO { Id = id, Name = updateDto.Name, IsActive = updateDto.IsActive };
+                var departmentDto = new DepartmentDTO { Id = id, Name = updateDto.Name };
                 await _Service.Update(departmentDto);
-
-                //// Update department (including IsActive state)
-                //existingDepartment.Name = updateDto.Name;
-                //existingDepartment.IsActive = updateDto.IsActive; // Admin can change the active state
-                //await _Service.Update(existingDepartment);
             }
             catch (KeyNotFoundException ex)
             {
@@ -161,19 +140,29 @@ namespace DepartmentApi.Controllers
 
         [HttpPatch("{id}")]
         [Authorize(Roles = "Admin")]
+       
         public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Deleting with id: {Id}", id);
-            var success = await _Service.Delete(id);
+            _logger.LogInformation("Toggling active status for Department with id: {Id}", id);
 
-            if (!success)
+            try
             {
-                _logger.LogWarning("with id: {Id} not found", id);
-                return NotFound();
+                bool isActive = await _Service.Delete(id);
+                _logger.LogInformation("Department with id: {Id} is now {Status}", id, isActive ? "Active" : "Inactive");
+                return Ok(new { id, IsActive = isActive });
             }
-
-            return NoContent();
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for Department with id: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
     }
 }
 

@@ -114,26 +114,9 @@ namespace DesignationApi.Controllers
                 _logger.LogWarning("id: {Id} does not match with the id in the request body", id);
                 return BadRequest("ID mismatch.");
             }
-
-            // Retrieve the department by ID
-            var existingDesignation= await _Service.Get(id);
-
-            if (existingDesignation == null)
-            {
-                _logger.LogWarning("Department with id: {Id} not found", id);
-                return NotFound();
-            }
-
-            // Only admins can reactivate inactive records
-            if (!existingDesignation.IsActive && !User.IsInRole("Admin"))
-            {
-                _logger.LogWarning("User without admin privileges attempted to reactivate department with id: {Id}", id);
-                return Forbid();
-            }
-
             // Check if the updated name is unique (excluding the current department)
-            var designationByName = await _Service.GetByName(updateDto.Name);
-            if (designationByName != null && designationByName.Id != id)
+            var existingDepartment = await _Service.GetByName(updateDto.Name);
+            if (existingDepartment != null && existingDepartment.Id != id)
             {
                 _logger.LogWarning("Designation with name '{Name}' already exists", updateDto.Name);
                 return BadRequest($"Designation with name '{updateDto.Name}' already exists.");
@@ -141,12 +124,8 @@ namespace DesignationApi.Controllers
 
             try
             {
-                var designationDto = new DesignationDTO { Id = id, Name = updateDto.Name, IsActive = updateDto.IsActive };
+                var designationDto = new DesignationDTO { Id = id, Name = updateDto.Name };
                 await _Service.Update(designationDto);
-                //// Update department (including IsActive state)
-                //existingDesignation.Name = updateDto.Name;
-                //existingDesignation.IsActive = updateDto.IsActive; // Admin can change the active state
-                //await _Service.Update(existingDesignation);
             }
             catch (KeyNotFoundException ex)
             {
@@ -157,20 +136,30 @@ namespace DesignationApi.Controllers
             return NoContent();
         }
 
+
         [HttpPatch("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Deleting with id: {Id}", id);
-            var success = await _Service.Delete(id);
+            _logger.LogInformation("Toggling active status for Designation with id: {Id}", id);
 
-            if (!success)
+            try
             {
-                _logger.LogWarning("with id: {Id} not found", id);
-                return NotFound();
+                bool isActive = await _Service.Delete(id);
+                _logger.LogInformation("Designation with id: {Id} is now {Status}", id, isActive ? "Active" : "Inactive");
+                return Ok(new { id, IsActive = isActive });
             }
-
-            return NoContent();
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for Designation with id: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
     }
 }

@@ -123,37 +123,56 @@ namespace ProjectApi.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id}")]
+        [HttpPatch("{id}/toggle-active")]
         [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Deleting with id: {Id}", id);
-            var success = await _Service.Delete(id);
+            _logger.LogInformation("Toggling active status for Project with id: {Id}", id);
 
-            if (!success)
-            {
-                _logger.LogWarning("with id: {Id} not found", id);
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        [HttpPatch("{id}/activate")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Activate(string id)
-        {
-            _logger.LogInformation("Activating Project with id: {Id}", id);
             try
             {
-                await _Service.Activate(id);
-                return NoContent();
+                // Retrieve the current project record
+                var project = await _Service.Get(id);
+                if (project == null)
+                {
+                    return NotFound("Client not found");
+                }
+
+                // Role-based access: only Admins can activate, all specified roles can deactivate
+                if (project.IsActive)
+                {
+                    // Active to Inactive: Allow Admin, Director, Project Manager
+                    if (!User.IsInRole("Admin") && !User.IsInRole("Director") && !User.IsInRole("Project Manager"))
+                    {
+                        return Forbid("Only Admins, Directors, and Project Managers can deactivate a project.");
+                    }
+                }
+                else
+                {
+                    // Inactive to Active: Allow only Admin
+                    if (!User.IsInRole("Admin"))
+                    {
+                        return Forbid("Only Admins can activate a project.");
+                    }
+                }
+
+                // Toggle the active status
+                bool newStatus = await _Service.Delete(id);
+                _logger.LogInformation("Project with id: {Id} is now {Status}", id, newStatus ? "Active" : "Inactive");
+
+                return Ok(new { id, IsActive = newStatus });
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex.Message);
                 return NotFound(ex.Message);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for project with id: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
     }
 }

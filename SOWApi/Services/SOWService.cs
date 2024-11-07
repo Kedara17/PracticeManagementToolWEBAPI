@@ -84,25 +84,6 @@ namespace SOWApi.Services
             if (existingSOW != null)
                 throw new ArgumentException("A Title with the same name already exists.");
 
-           /* var client = await _context.TblClient
-               .FirstOrDefaultAsync(d => d.Name == _object.Client);
-
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
-
-            var project = await _context.TblProject
-               .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
-
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
-
-            var status = await _context.TblSOWStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
-
-            if (status == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
-
-
             var sow = new SOW
             {
                 Title = _object.Title,
@@ -141,24 +122,6 @@ namespace SOWApi.Services
             if (sow == null)
                 throw new KeyNotFoundException("SOW not found");
 
-           /* var client = await _context.TblClient
-              .FirstOrDefaultAsync(d => d.Name == _object.Client);
-
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
-
-            var project = await _context.TblProject
-               .FirstOrDefaultAsync(d => d.ProjectName == _object.Project);
-
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
-
-            var status = await _context.TblSOWStatus
-               .FirstOrDefaultAsync(d => d.Status == _object.Status);
-
-            if (status == null)
-                throw new KeyNotFoundException("SalesContact not found");*/
-
             sow.Title = _object.Title;
             sow.ClientId = _object.Client;
             sow.ProjectId = _object.Project;
@@ -180,28 +143,20 @@ namespace SOWApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            // Check if the SOW exists
-            var existingsow = await _repository.Get(id);
-            if (existingsow == null)
+            var sow = await _context.TblSOW.FindAsync(id);
+            if (sow == null)
             {
-                throw new ArgumentException($"SOW with ID {id} not found.");
+                throw new KeyNotFoundException("SOW not found");
             }
 
-            existingsow.IsActive = false; // Soft delete
-            await _repository.Update(existingsow); // Save changes
-            return true;
-        }
+            // Toggle the IsActive status
+            sow.IsActive = !sow.IsActive;
 
-        public async Task Activate(string id)
-        {
-            var sow = await _context.TblSOW.FindAsync(id);
-
-            if (sow == null)
-                throw new KeyNotFoundException("Sow not found");
-
-            sow.IsActive = true;
+            // Save the changes
             _context.Entry(sow).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            return sow.IsActive;
         }
     }
 }

@@ -29,7 +29,6 @@ namespace DataServices.Models
     public class DepartmentUpdateDTO : DepartmentCreateDTO
     {
         public string Id { get; set; }
-        public bool IsActive { get; set; } // Explicitly add IsActive here
 
     }
 

@@ -117,39 +117,57 @@ namespace InterviewApi.Controllers
             }
             return NoContent();
         }
-
-        [HttpPatch("{id}")]
+        [HttpPatch("{id}/toggle-active")]
         [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Deleting interview with id: {Id}", id);
-            var success = await _service.Delete(id);
+            _logger.LogInformation("Toggling active status for Interview with id: {Id}", id);
 
-            if (!success)
-            {
-                _logger.LogWarning("Interview with id: {Id} not found", id);
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        [HttpPatch("{id}/activate")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Activate(string id)
-        {
-            _logger.LogInformation("Activating Client with id: {Id}", id);
             try
             {
-                await _service.Activate(id);
-                return NoContent();
+                // Retrieve the current interview record
+                var interview = await _service.Get(id);
+                if (interview == null)
+                {
+                    return NotFound("Interview not found");
+                }
+
+                // Role-based access: only Admins can activate, all specified roles can deactivate
+                if (interview.IsActive)
+                {
+                    // Active to Inactive: Allow Admin, Director, Project Manager
+                    if (!User.IsInRole("Admin") && !User.IsInRole("Director") && !User.IsInRole("Project Manager"))
+                    {
+                        return Forbid("Only Admins, Directors, and Project Managers can deactivate a interview.");
+                    }
+                }
+                else
+                {
+                    // Inactive to Active: Allow only Admin
+                    if (!User.IsInRole("Admin"))
+                    {
+                        return Forbid("Only Admins can activate a interview.");
+                    }
+                }
+
+                // Toggle the active status
+                bool newStatus = await _service.Delete(id);
+                _logger.LogInformation("Interview with id: {Id} is now {Status}", id, newStatus ? "Active" : "Inactive");
+
+                return Ok(new { id, IsActive = newStatus });
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex.Message);
                 return NotFound(ex.Message);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for Interview with id: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
 
     }
 }

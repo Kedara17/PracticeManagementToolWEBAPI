@@ -126,12 +126,6 @@ namespace ClientApi.Services
             if (client == null)
                 throw new KeyNotFoundException("Client not found");
 
-            /*var salesEmployee = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == _object.SalesEmployee);
-
-            if (salesEmployee == null)
-                throw new KeyNotFoundException("SalesEmployee not found");*/
-
             client.Name = _object.Name;
             client.LineofBusiness = _object.LineofBusiness;
             client.SalesEmployee = _object.SalesEmployee;
@@ -154,29 +148,22 @@ namespace ClientApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            // Check if the client exists
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
+            var client = await _context.TblClient.FindAsync(id);
+            if (client == null)
             {
-                throw new ArgumentException($"Client with ID {id} not found.");
+                throw new KeyNotFoundException("Client not found");
             }
 
-            // Call repository to delete the technology
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
-        }
-        public async Task Activate(string id)
-        {
-            var client = await _context.TblClient.FindAsync(id);
+            // Toggle the IsActive status
+            client.IsActive = !client.IsActive;
 
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
-
-            client.IsActive = true;
+            // Save the changes
             _context.Entry(client).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            return client.IsActive;
         }
+
 
     }
 }

@@ -91,30 +91,6 @@ namespace ProjectApi.Services
 
             var project = new Project();
 
-           /* var client = await _context.TblClient
-               .FirstOrDefaultAsync(d => d.Name == projDto.Client);
-
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
-
-            var technicalProjectManager = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.TechnicalProjectManager);
-
-            if (technicalProjectManager == null)
-                throw new KeyNotFoundException("TechnicalProjectManagerId not found");
-
-            var salesContact = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.SalesContact);
-
-            if (salesContact == null)
-                throw new KeyNotFoundException("SalesContact not found");
-
-            var pmo = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
-
-            if (pmo == null)
-                throw new KeyNotFoundException("PMO not found");*/
-
             project.ClientId = projDto.Client;
             project.ProjectName = projDto.ProjectName;
             project.TechnicalProjectManager = projDto.TechnicalProjectManager;
@@ -166,30 +142,6 @@ namespace ProjectApi.Services
 
             if (project == null)
                 throw new KeyNotFoundException("Project not found");
-
-          /*  var client = await _context.TblClient
-              .FirstOrDefaultAsync(d => d.Name == projDto.Client);
-
-            if (client == null)
-                throw new KeyNotFoundException("Client not found");
-
-            var technicalProjectManager = await _context.TblEmployee
-                .FirstOrDefaultAsync(d => d.Name == projDto.TechnicalProjectManager);
-
-            if (technicalProjectManager == null)
-                throw new KeyNotFoundException("TechnicalProjectManagerId not found");
-
-            var salesContact = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.SalesContact);
-
-            if (salesContact == null)
-                throw new KeyNotFoundException("SalesContact not found");
-
-            var pmo = await _context.TblEmployee
-               .FirstOrDefaultAsync(d => d.Name == projDto.PMO);
-
-            if (pmo == null)
-                throw new KeyNotFoundException("PMO not found");*/
 
             project.ClientId = projDto.Client;
             project.ProjectName = projDto.ProjectName;
@@ -243,28 +195,20 @@ namespace ProjectApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
+            var project = await _context.TblProject.FindAsync(id);
+            if (project == null)
             {
-                throw new ArgumentException($"with ID {id} not found.");
+                throw new KeyNotFoundException("Project not found");
             }
 
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
-        }
+            // Toggle the IsActive status
+            project.IsActive = !project.IsActive;
 
-        public async Task Activate(string id)
-        {
-            var project = await _context.TblProject.FindAsync(id);
-
-            if (project == null)
-                throw new KeyNotFoundException("Project not found");
-
-            project.IsActive = true;
+            // Save the changes
             _context.Entry(project).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-        }
 
+            return project.IsActive;
+        }
     }
 }

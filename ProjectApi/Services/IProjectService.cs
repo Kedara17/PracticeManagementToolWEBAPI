@@ -9,6 +9,5 @@ namespace ProjectApi.Services
         public Task<ProjectDTO> Add(ProjectDTO _object);
         public Task<ProjectDTO> Update(ProjectDTO _object);
         public Task<bool> Delete(string id);
-        public Task Activate(string id);
     }
 }
