@@ -1,6 +1,8 @@
 using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 
 namespace EmployeeApi.Services
@@ -110,7 +112,7 @@ namespace EmployeeApi.Services
 
             // Check if EmailId is unique
             var existingEmailId = await _context.TblEmployee
-                .FirstOrDefaultAsync(e => e.EmailId== empDto.EmailId);
+                .FirstOrDefaultAsync(e => e.EmailId == empDto.EmailId);
 
             if (existingEmailId != null)
             {
@@ -212,7 +214,7 @@ namespace EmployeeApi.Services
             //---------------------------------------------------------
             if (!string.IsNullOrWhiteSpace(empDto.PhoneNo))
             {
-                employee.PhoneNo= empDto.PhoneNo;
+                employee.PhoneNo = empDto.PhoneNo;
             }
             else
             {
@@ -244,8 +246,8 @@ namespace EmployeeApi.Services
             _context.TblEmployee.Add(employee);
             await _context.SaveChangesAsync();
 
-            empDto.Id = employee.Id;      
-           
+            empDto.Id = employee.Id;
+
             // If Technology is null or contains only empty strings, treat it as null
             if (empDto.Technology == null || empDto.Technology.All(string.IsNullOrWhiteSpace))
             {
@@ -274,56 +276,123 @@ namespace EmployeeApi.Services
             return empDto;
         }
 
+        /* public async Task<string> UploadFileAsync(EmployeeProfileDTO employeeProfile)
+         {
+             string filePath = "";
+             try
+             {
+                 // Check if the file is not empty
+                 if (employeeProfile.Profile.Length > 0)
+                 {
+                     var file = employeeProfile.Profile;
+                     filePath = Path.GetFullPath($"C:\\Users\\mshaik5\\Desktop\\UploadProfiles\\{file.FileName}");
+
+                     // Save file to the specified path
+                     using (var stream = System.IO.File.Create(filePath))
+                     {
+                         await file.CopyToAsync(stream);
+                     }
+
+                     // Update employee's profile if ID is provided
+                     if (!string.IsNullOrEmpty(employeeProfile.Id))
+                     {
+                         var employee = await Get(employeeProfile.Id);
+
+                         if (employee != null)
+                         {
+                             employee.Profile = file.FileName;
+                             await Update(employee);
+                         }
+                     }
+                     else
+                     {
+                         return file.FileName;
+                     }
+                 }
+                 else
+                 {
+                     throw new Exception("The uploaded file is empty.");
+                 }
+             }
+             catch (Exception ex)
+             {
+                 throw new Exception("An error occurred while uploading the file: " + ex.Message);
+             }
+
+             return filePath;
+         }
+ */
+
+        [HttpPost]
         public async Task<string> UploadFileAsync(EmployeeProfileDTO employeeProfile)
         {
-            string filePath = "";
+            var filename = Path.GetFileNameWithoutExtension(employeeProfile.Profile.FileName) + Path.GetExtension(employeeProfile.Profile.FileName);
+
             try
             {
-                // Check if the file is not empty
-                if (employeeProfile.Profile.Length > 0)
+                // Get the file extension
+                var extension = Path.GetExtension(filename);
+
+                // Define the upload directory path
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "UploadProfile\\Profiles");
+
+                // Create the directory if it does not exist
+                if (!Directory.Exists(filepath))
                 {
-                    var file = employeeProfile.Profile;
-                    filePath = Path.GetFullPath($"C:\\Users\\mshaik5\\Desktop\\UploadProfiles\\{file.FileName}");
-
-                    // Save file to the specified path
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    // Update employee's profile if ID is provided
-                    if (!string.IsNullOrEmpty(employeeProfile.Id))
-                    {
-                        var employee = await Get(employeeProfile.Id);
-
-                        if (employee != null)
-                        {
-                            employee.Profile = file.FileName;
-                            await Update(employee);
-                        }
-                    }
-                    else
-                    {
-                        return file.FileName;
-                    }
+                    Directory.CreateDirectory(filepath);
                 }
-                else
+
+                // Combine the directory and filename for the full path
+                var completepath = Path.Combine(filepath, filename);
+
+                // Save the file
+                using (var stream = new FileStream(completepath, FileMode.Create))
                 {
-                    throw new Exception("The uploaded file is empty.");
+                    await employeeProfile.Profile.CopyToAsync(stream);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while uploading the file: " + ex.Message);
+                // Log or handle the exception as needed
+                Console.WriteLine(ex.Message);
+            }
+            return filename;
+        }
+
+        [HttpGet("download")]
+        public async Task<FileContentResult> DownloadFileAsync(string filename)
+        {
+            // Construct the full file path
+            var completePath = Path.Combine(Directory.GetCurrentDirectory(), "UploadProfile\\Profiles", filename);
+
+            // Check if the file exists
+            if (!System.IO.File.Exists(completePath))
+            {
+                return null; // Return null if file does not exist
             }
 
-            return filePath;
+            // Determine the content type based on the file extension
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(completePath, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            // Read the file as a byte array
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(completePath);
+
+            // Return the file as FileContentResult
+            return new FileContentResult(fileBytes, contentType)
+            {
+                FileDownloadName = filename
+            };
         }
+
 
         public async Task<EmployeeDTO> Update(EmployeeDTO empDto)
         {
             var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
-            
+
             var employee = await _context.TblEmployee.FindAsync(empDto.Id);
             if (employee == null)
                 throw new KeyNotFoundException("Employee not found");
@@ -419,7 +488,7 @@ namespace EmployeeApi.Services
                 employee.PhoneNo = null;
             }
             //---------------------------------------------------------
-             if (!string.IsNullOrWhiteSpace(empDto.Role))
+            if (!string.IsNullOrWhiteSpace(empDto.Role))
             {
                 // Verify that the department exists before assigning it
                 var role = await _context.TblRole
@@ -450,7 +519,7 @@ namespace EmployeeApi.Services
             }
 
 
-           // _context.Entry(employee).State = EntityState.Modified;
+            // _context.Entry(employee).State = EntityState.Modified;
 
             if (empDto.Technology == null || empDto.Technology.All(string.IsNullOrWhiteSpace))
             {

@@ -82,7 +82,8 @@ namespace EmployeeApi.Controllers
 
             try
             {
-                var employeeDto = new EmployeeDTO {
+                var employeeDto = new EmployeeDTO
+                {
                     Name = createDto.Name,
                     Designation = createDto.Designation,
                     EmployeeID = createDto.EmployeeID,
@@ -123,6 +124,21 @@ namespace EmployeeApi.Controllers
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
         }
+
+        [HttpGet("download")]
+        public async Task<IActionResult> DownloadFile([FromQuery] string filename)
+        {
+            var fileResult = await _employeeService.DownloadFileAsync(filename);
+
+            if (fileResult == null)
+            {
+                return NotFound("File not found.");
+            }
+
+            return fileResult;
+        }
+
+
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
