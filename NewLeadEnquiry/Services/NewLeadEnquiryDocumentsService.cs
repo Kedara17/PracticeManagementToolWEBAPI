@@ -9,11 +9,13 @@ namespace NewLeadApi.Services
     {
         private readonly DataBaseContext _context;
         private readonly IRepository<NewLeadEnquiryDocuments> _repository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NewLeadEnquiryDocumentsService(DataBaseContext context, IRepository<NewLeadEnquiryDocuments> repository)
+        public NewLeadEnquiryDocumentsService(DataBaseContext context, IRepository<NewLeadEnquiryDocuments> repository, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _repository = repository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // Get all documents
@@ -63,6 +65,8 @@ namespace NewLeadApi.Services
         // Add a new document
         public async Task<NewLeadEnquiryDocumentsDTO> Add(NewLeadEnquiryDocumentsDTO dto)
         {
+           // var leadDocuments = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+
             var newLeadEnquiry = await _context.TblNewLeadEnquiry
                 .FirstOrDefaultAsync(ne => ne.Id == dto.NewLeadEnquiryID);
             if (newLeadEnquiry == null)
@@ -89,6 +93,8 @@ namespace NewLeadApi.Services
         // Update an existing document
         public async Task<NewLeadEnquiryDocumentsDTO> Update(NewLeadEnquiryDocumentsDTO dto)
         {
+            //var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadDocuments")?.Value;
+
             var document = await _context.TblNewLeadEnquiryDocuments.FindAsync(dto.Id);
 
             if (document == null) throw new KeyNotFoundException("Document not found.");

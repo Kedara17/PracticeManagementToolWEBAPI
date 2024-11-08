@@ -66,11 +66,10 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryFollowupDTO> Add(NewLeadEnquiryFollowupDTO dto)
         {
-            var leadFollowUp = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+            //var leadFollowUp = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
 
             var newFollowup = new NewLeadEnquiryFollowup();
 
-            newFollowup.Id = dto.Id;
             newFollowup.NewLeadEnquiryID = dto.NewLeadEnquiryID;
             newFollowup.AssignTo = dto.AssignTo;
             newFollowup.NewFollowupDate = dto.NewFollowupDate;
@@ -78,7 +77,7 @@ namespace NewLeadApi.Services
             newFollowup.IsActive = dto.IsActive;
             newFollowup.CreatedBy = dto.CreatedBy;
             newFollowup.CreatedDate = dto.CreatedDate;
-            newFollowup.UpdatedBy = leadFollowUp;
+            newFollowup.UpdatedBy = dto.UpdatedBy;
             newFollowup.UpdatedDate = dto.UpdatedDate;
 
             dto.Id = newFollowup.Id;
@@ -89,14 +88,13 @@ namespace NewLeadApi.Services
         
         public async Task<NewLeadEnquiryFollowupDTO> Update(NewLeadEnquiryFollowupDTO dto)
         {
-            var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadFollowUp")?.Value;
+            //var userName = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
             // Check if the follow-up ID exists
             var followup = await _context.TblNewLeadEnquireFollowup.FindAsync(dto.Id);
             if (followup == null)
                 throw new KeyNotFoundException("Followup not found.");
 
             // Update followup fields
-            followup.Id = dto.Id;
             followup.NewLeadEnquiryID = dto.NewLeadEnquiryID;
             followup.AssignTo = dto.AssignTo;
             followup.NewFollowupDate = dto.NewFollowupDate;
@@ -104,7 +102,7 @@ namespace NewLeadApi.Services
             followup.IsActive = dto.IsActive;
             followup.CreatedBy = dto.CreatedBy;
             followup.CreatedDate = dto.CreatedDate;
-            followup.UpdatedBy = userName;
+            followup.UpdatedBy = dto.UpdatedBy;
             followup.UpdatedDate = dto.UpdatedDate;
 
             // Set the entity state to modified

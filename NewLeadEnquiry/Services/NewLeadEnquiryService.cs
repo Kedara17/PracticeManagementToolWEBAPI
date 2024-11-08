@@ -80,13 +80,13 @@ namespace NewLeadApi.Services
 
         public async Task<NewLeadEnquiryDTO> Add(NewLeadEnquiryDTO dto)
         {
-            var leadEnquiry = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+            //var leadEnquiry = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
 
             var newLeadEnquiry = new NewLeadEnquiry();
 
             // Check if the Enquiry name already exists
-                 var existingEnquiry = await _context.TblEmployee
-                .FirstOrDefaultAsync(t => t.Name == dto.CompanyName);
+                 var existingEnquiry = await _context.TblNewLeadEnquiry
+                .FirstOrDefaultAsync(t => t.CompanyName == dto.CompanyName);
 
             if (existingEnquiry != null)
                 throw new ArgumentException("A enquiry with the same name already exists.");
@@ -101,7 +101,7 @@ namespace NewLeadApi.Services
             newLeadEnquiry.Status = dto.Status;
             newLeadEnquiry.Comments = dto.Comments;
             newLeadEnquiry.IsActive = true; // Assuming new enquiries are active by default
-            newLeadEnquiry.CreatedBy = leadEnquiry;
+            newLeadEnquiry.CreatedBy = dto.CreatedBy;
             newLeadEnquiry.CreatedDate = DateTime.Now;           
 
             dto.Id = newLeadEnquiry.Id;
@@ -110,33 +110,28 @@ namespace NewLeadApi.Services
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(dto.FileName))
-            {
-                var newLeadEnquiryDocument = new NewLeadEnquiryDocuments
+            {                
+                await _context.TblNewLeadEnquiryDocuments.AddAsync(new NewLeadEnquiryDocuments
                 {
-                    NewLeadEnquiryID = dto.Id,
-                    FileName = dto.FileName,
-                };
-
-                await _context.TblNewLeadEnquiryDocuments.AddAsync(newLeadEnquiryDocument);
-                await _context.SaveChangesAsync();
+                    NewLeadEnquiryID = newLeadEnquiry.Id,
+                    FileName = dto.FileName
+                });
 
             }
 
             // Handle technologies
             if (dto.Technology != null && dto.Technology.Any())
-            {
-                foreach (var technologyId in dto.Technology)
+            {              
+                var technologies = dto.Technology.Select(techId => new NewLeadEnquiryTechnology
                 {
-                    var newLeadEnquiryTechnology = new NewLeadEnquiryTechnology
-                    {
-                        NewLeadEnquiryID = newLeadEnquiry.Id,
-                        TechnologyID = technologyId.ToString(),
-                    };
-
-                    await _context.TblNewLeadEnquiryTechnology.AddAsync(newLeadEnquiryTechnology);
-                }
-                await _context.SaveChangesAsync();
+                    NewLeadEnquiryID = newLeadEnquiry.Id,
+                    TechnologyID = techId.ToString()
+                });
+                await _context.TblNewLeadEnquiryTechnology.AddRangeAsync(technologies);
             }
+
+            await _context.SaveChangesAsync();
+            dto.Id = newLeadEnquiry.Id;
 
             return dto;
         }
@@ -188,11 +183,11 @@ namespace NewLeadApi.Services
         public async Task<NewLeadEnquiryDTO> Update(NewLeadEnquiryDTO dto)
         {
 
-            var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadEnquiry")?.Value;
+            //var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadEnquiry")?.Value;
 
             // Check if the Enquiry name already exists
-            var existingEnquiry = await _context.TblClient
-               .FirstOrDefaultAsync(t => t.Name == dto.CompanyName);
+            var existingEnquiry = await _context.TblNewLeadEnquiry
+               .FirstOrDefaultAsync(t => t.CompanyName == dto.CompanyName);
 
             if (existingEnquiry != null)
                 throw new ArgumentException("A Enquiry with the same name already exists.");
@@ -212,7 +207,7 @@ namespace NewLeadApi.Services
             newLeadEnquiry.Status = dto.Status;
             newLeadEnquiry.Comments = dto.Comments;
             newLeadEnquiry.IsActive = dto.IsActive;           
-            newLeadEnquiry.UpdatedBy = userName;
+            newLeadEnquiry.UpdatedBy = dto.UpdatedBy;
             newLeadEnquiry.UpdatedDate = DateTime.Now;
 
             // Set the Profile property if a file is uploaded
