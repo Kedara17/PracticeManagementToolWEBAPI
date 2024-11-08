@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EmployeeApi.Controllers
@@ -29,15 +30,12 @@ namespace EmployeeApi.Controllers
         public async Task<ActionResult<IEnumerable<EmployeeDTO>>> GetAll()
         {
             _logger.LogInformation("Fetching all employees");
+            // Retrieve the role and department claims from the token
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userDepartment = User.FindFirst("Department")?.Value;
+
             var employees = await _employeeService.GetAll();
-            if (User.IsInRole("Admin"))
-            {
-                return Ok(employees); // Admin can see all data
-            }
-            else
-            {
-                return Ok(employees.Where(d => d.IsActive)); // Non-admins see only active data
-            }
+            return Ok(User.IsInRole("Admin") ? employees : employees.Where(d => d.IsActive));
         }
 
         [HttpGet("{id}")]
@@ -175,33 +173,25 @@ namespace EmployeeApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
-            _logger.LogInformation("Deleting employee with id: {Id}", id);
-            var success = await _employeeService.Delete(id);
+            _logger.LogInformation("Toggling active status for Employee with id: {Id}", id);
 
-            if (!success)
-            {
-                _logger.LogWarning("Employee with id: {Id} not found", id);
-                return NotFound();
-            }
-
-            return NoContent();
-        }
-
-        [HttpPatch("{id}/activate")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Activate(string id)
-        {
-            _logger.LogInformation("Activating Employee with id: {Id}", id);
             try
             {
-                await _employeeService.Activate(id);
-                return NoContent();
+                bool isActive = await _employeeService.Delete(id);
+                _logger.LogInformation("Employee with id: {Id} is now {Status}", id, isActive ? "Active" : "Inactive");
+                return Ok(new { id, IsActive = isActive });
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex.Message);
                 return NotFound(ex.Message);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error toggling active status for Employee with id: {Id}", id);
+                return StatusCode(500, "Internal server error");
+            }
         }
+
     }
 }

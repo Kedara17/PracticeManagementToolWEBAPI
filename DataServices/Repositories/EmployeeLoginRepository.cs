@@ -34,6 +34,14 @@ namespace DataServices.Repositories
             return employee?.Name; // Return the employee's name
         }
 
+        public async Task<string> GetUserDepartment(string emailId)
+        {
+            var employee = await _dbContext.TblEmployee
+                                           .Include(e => e.Department) // Assuming TblEmployee has a navigation property to Department
+                                           .FirstOrDefaultAsync(e => e.EmailId == emailId);
+            return employee?.Department?.Name; // Return the department name
+        }
+
         public async Task<bool> Validate(string emailId, string password)
         {
             try

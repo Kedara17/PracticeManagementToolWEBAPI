@@ -10,7 +10,6 @@ namespace EmployeeApi.Services
         Task<string> UploadFileAsync(EmployeeProfileDTO employee);
         Task<EmployeeDTO> Update(EmployeeDTO employee);
         Task<bool> Delete(string id);
-        public Task Activate(string id);
 
     }
 }

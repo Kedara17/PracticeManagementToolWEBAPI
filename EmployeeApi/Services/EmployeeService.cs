@@ -2,6 +2,7 @@ using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EmployeeApi.Services
 {
@@ -20,13 +21,52 @@ namespace EmployeeApi.Services
 
         public async Task<IEnumerable<EmployeeDTO>> GetAll()
         {
-            var employees = await _context.TblEmployee
-                .Include(e => e.Department)
-                .Include(e => e.Designation)
-                .Include(e => e.Roles)
-                .Include(e => e.ReportingToEmployee)
-                .ToListAsync();
+            var currentUser = _httpContextAccessor.HttpContext?.User;
+            var currentUserRole = currentUser?.FindFirst(ClaimTypes.Role)?.Value;
+            var currentUserDepartment = currentUser?.FindFirst("Department")?.Value;
+            var currentUserName = currentUser?.FindFirst("EmployeeName")?.Value; // To identify current user in the hierarchy
 
+            if (string.IsNullOrEmpty(currentUserRole) || string.IsNullOrEmpty(currentUserDepartment))
+            {
+                throw new UnauthorizedAccessException("User role or department is missing.");
+            }
+
+            IQueryable<Employee> query = _context.TblEmployee
+            .Include(e => e.Department)
+            .Include(e => e.Designation)
+            .Include(e => e.Roles)
+            .Include(e => e.ReportingToEmployee);
+
+            // Apply filtering based on role
+            if (currentUserRole == "Admin" || currentUserRole == "Executive Board")
+            {
+                // Admins and executive board members can access all data
+            }
+            else if (currentUserRole == "Director")
+            {
+                // Directors access all employees in their department
+                query = query.Where(e => e.Department.Name == currentUserDepartment);
+            }
+            else if (currentUserRole == "Project Manager")
+            {
+                // Project Managers access employees in their department and direct/indirect reports
+                query = query.Where(e => e.Department.Name == currentUserDepartment &&
+                                        (e.ReportingToEmployee.Name == currentUserName ||
+                                         e.ReportingToEmployee.ReportingToEmployee.Name == currentUserName));
+            }
+            else if (currentUserRole == "Team Lead")
+            {
+                // Team Leads access only their direct reports within the same department
+                query = query.Where(e => e.Department.Name == currentUserDepartment && e.ReportingToEmployee.Name == currentUserName);
+            }
+            else
+            {
+                throw new UnauthorizedAccessException("Access denied for this role.");
+            }
+
+            var employees = await query.ToListAsync();
+
+            // Map to DTOs
             var empDtos = employees.Select(employee => new EmployeeDTO
             {
                 Id = employee.Id,
@@ -485,32 +525,20 @@ namespace EmployeeApi.Services
 
         public async Task<bool> Delete(string id)
         {
-            /*            var employee = await _context.TblEmployee.FindAsync(id);
-                        if (employee == null) return false;
-                        _context.TblEmployee.Remove(employee);
-                        await _context.SaveChangesAsync();
-                        return true;*/
-
-            var existingData = await _repository.Get(id);
-            if (existingData == null)
-            {
-                throw new ArgumentException($"with ID {id} not found.");
-            }
-            existingData.IsActive = false; // Soft delete
-            await _repository.Update(existingData); // Save changes
-            return true;
-        }
-
-        public async Task Activate(string id)
-        {
             var employee = await _context.TblEmployee.FindAsync(id);
-
             if (employee == null)
+            {
                 throw new KeyNotFoundException("Employee not found");
+            }
 
-            employee.IsActive = true;
+            // Toggle the IsActive status
+            employee.IsActive = !employee.IsActive;
+
+            // Save the changes
             _context.Entry(employee).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            return employee.IsActive;
         }
     }
 }

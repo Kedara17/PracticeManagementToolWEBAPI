@@ -22,6 +22,7 @@ namespace AuthApi.Helpers
         {
             public string Token { get; set; }
             public string Role { get; set; }
+            public string Department { get; set; }
         }
 
         public async Task<AuthResponse> Validate(string emailId, string password)
@@ -33,11 +34,14 @@ namespace AuthApi.Helpers
             {
                 string role = await _employeeLoginRepository.GetUserRole(emailId);
                 string employeeName = await _employeeLoginRepository.GetEmployeeName(emailId);
-                string token = GenerateToken(emailId, role, employeeName); 
+                string department = await _employeeLoginRepository.GetUserDepartment(emailId); // Retrieve the department
+
+                string token = GenerateToken(emailId, role, employeeName, department); 
                 authResponse = new AuthResponse
                 {
                     Token = token,
-                    Role = role
+                    Role = role,
+                    Department = department // Set department in response
                 };
             }
 
@@ -45,7 +49,7 @@ namespace AuthApi.Helpers
         }
 
 
-        private string GenerateToken(string emailId, string role, string employeeName)
+        private string GenerateToken(string emailId, string role, string employeeName, string department)
         {
             try
             {
@@ -56,7 +60,8 @@ namespace AuthApi.Helpers
                 {
                     new Claim(ClaimTypes.Name, emailId),
                     new Claim(ClaimTypes.Role, role), // Add the user's role to the claims
-                    new Claim("EmployeeName", employeeName) // Custom claim for employee name
+                    new Claim("EmployeeName", employeeName), // Custom claim for employee name
+                    new Claim("Department", department) // Add department as a claim
                 };
 
                 var token = new JwtSecurityToken(

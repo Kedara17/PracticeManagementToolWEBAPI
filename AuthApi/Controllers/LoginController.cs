@@ -38,7 +38,8 @@ namespace AuthApi.Controllers
                 return Ok(new
                 {
                     Token = authResponse.Token,
-                    Role = authResponse.Role
+                    Role = authResponse.Role,
+                    Department = authResponse.Department // Include department in the response
                 });
             }
             else
