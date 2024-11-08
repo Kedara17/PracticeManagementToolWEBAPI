@@ -51,7 +51,7 @@ namespace DataServices.Models
     public class EmployeeProfileDTO 
     {
         public string? Id { get; set; }
-        [FileExtensions(Extensions = "doc,docx,pdf", ErrorMessage = "Profile must be a .doc, .docx, or .pdf file.")]
+        /*[FileExtensions(Extensions = "doc,docx,pdf", ErrorMessage = "Profile must be a .doc, .docx, or .pdf file.")]*/
         public IFormFile Profile { get; set; }
 
     }

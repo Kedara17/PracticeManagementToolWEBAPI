@@ -31,4 +31,8 @@
     <ProjectReference Include="..\DataServices\DataServices.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="UploadProfile\Profiles\" />
+  </ItemGroup>
+
 </Project>
