@@ -18,7 +18,7 @@ namespace DataServices.Models
     }
     public class NewLeadEnquiryDocumentsDTO : AuditData
     {
-        public string NewLeadEnquiryID { get; set; }
-        public string FileName { get; set; }
+        public string? NewLeadEnquiryID { get; set; }
+        public string? FileName { get; set; }
     }
 }
