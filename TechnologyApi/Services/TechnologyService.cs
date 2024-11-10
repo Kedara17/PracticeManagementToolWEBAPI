@@ -1,5 +1,6 @@
 ﻿using DataServices.Data;
 using DataServices.Models;
+using DataServices.Models.ViewModels;
 using DataServices.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -22,68 +23,35 @@ namespace TechnologyApi.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<TechnologyDTO>> GetAll()
+        public async Task<IEnumerable<Technology>> GetAll()
         {
             _logger.LogInformation("Fetching all Technologies");
             var technologies = await _context.TblTechnology.Include(t => t.Department).ToListAsync();
-            var techDtos = new List<TechnologyDTO>();
-
-            foreach (var tech in technologies)
-            {
-                techDtos.Add(new TechnologyDTO
-                {
-                    Id = tech.Id,
-                    Name = tech.Name,
-                    Department = tech.Department?.Name,
-                    IsActive = tech.IsActive,
-                    CreatedBy = tech.CreatedBy,
-                    CreatedDate = tech.CreatedDate,
-                    UpdatedBy = tech.UpdatedBy,
-                    UpdatedDate = tech.UpdatedDate
-                });
-            }
-
-            return techDtos;
+            return technologies;
         }
 
-        public async Task<TechnologyDTO> Get(string id)
+        public async Task<Technology> Get(string id)
         {
-            _logger.LogInformation("Fetching technology with id: {Id}", id);
             var technology = await _context.TblTechnology
                 .Include(t => t.Department)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (technology == null)
                 return null;
-
-            return new TechnologyDTO
-            {
-                Id = technology.Id,
-                Name = technology.Name,
-                Department = technology.Department?.Name,
-                IsActive = technology.IsActive,
-                CreatedBy = technology.CreatedBy,
-                CreatedDate = technology.CreatedDate,
-                UpdatedBy = technology.UpdatedBy,
-                UpdatedDate = technology.UpdatedDate
-            };
+            return technology;            
         }
 
-        public async Task<TechnologyDTO> Add(TechnologyDTO technologyDto)
+        public async Task<TechnologyViewModel> Add(TechnologyViewModel technologyDto)
         {
-            _logger.LogInformation("Adding a new technology with name: {Name}", technologyDto.Name);
             var technology = new Technology();
-            // Check if the technology name already exists
             var existingTechnology = await _context.TblTechnology
-                .FirstOrDefaultAsync(t => t.Name == technologyDto.Name);
+                .FirstOrDefaultAsync(t => t.Id == technologyDto.Id);
 
             if (existingTechnology != null)
                 throw new ArgumentException("A technology with the same name already exists.");
 
-            // Check if a department name is provided
             if (!string.IsNullOrWhiteSpace(technologyDto.Department))
             {
-                // Verify that the department exists before assigning it
                 var departmentExists = await _context.TblDepartment
                     .AnyAsync(d => d.Id == technologyDto.Department);
                 if (!departmentExists)
@@ -98,7 +66,7 @@ namespace TechnologyApi.Services
 
             var employeeName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
 
-            technology.Name = technologyDto.Name;                       
+            technology.Name = technologyDto.Name;
             technology.IsActive = true;
             technology.CreatedBy = employeeName;
             technology.CreatedDate = DateTime.Now;
@@ -110,20 +78,20 @@ namespace TechnologyApi.Services
             return technologyDto;
         }
 
-        public async Task<TechnologyDTO> Update(TechnologyDTO technologyDto)
+        public async Task<bool> Update(string id,TechnologyViewModel technologyDto)
         {
-            _logger.LogInformation("Updating technology with id: {Id}", technologyDto.Id);
+            
             var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("EmployeeName")?.Value;
 
-            var technology = await _context.TblTechnology.FindAsync(technologyDto.Id);
+            var technology = await _context.TblTechnology.FindAsync(id);
 
             if (technology == null)
                 throw new KeyNotFoundException("Technology not found");
 
-            // Check if a department name is provided
+            
             if (!string.IsNullOrWhiteSpace(technologyDto.Department))
             {
-                // Verify that the department exists before assigning it
+                
                 var departmentExists = await _context.TblDepartment
                     .AnyAsync(d => d.Id == technologyDto.Department);
                 if (!departmentExists)
@@ -138,7 +106,6 @@ namespace TechnologyApi.Services
 
             technology.Name = technologyDto.Name;
 
-            // Update the IsActive state if it's modified by the admin
             if (technology.IsActive != technologyDto.IsActive)
             {
                 technology.IsActive = technologyDto.IsActive;
@@ -148,14 +115,13 @@ namespace TechnologyApi.Services
             technology.UpdatedDate = DateTime.Now;
 
             _context.Entry(technology).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            int rowsAffected = await _context.SaveChangesAsync();
 
-            return technologyDto;
+            return rowsAffected > 0;
         }
 
         public async Task<bool> Delete(string id)
         {
-            _logger.LogInformation("Deleting technology with id: {Id}", id);
             var existingData = await _repository.Get(id);
             if (existingData == null)
             {
@@ -165,10 +131,6 @@ namespace TechnologyApi.Services
             await _repository.Update(existingData); // Save changes
             return true;
         }
-        public async Task<TechnologyDTO> GetByName(string name)
-        {
-            _logger.LogInformation("Fetching technology with name: {Name}", name);
-            return await _context.TblTechnology.FirstOrDefaultAsync(d => d.Name == name);
-        }
+        
     }
 }

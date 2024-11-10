@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 
 namespace DataServices.Models
 {
-    public class Technology : TechnologyDTO
+    public class Technology : AuditData
     {
         [ForeignKey("DepartmentId")]
         public string? DepartmentId { get; set; }
+        public string Name { get; set; }
         public ICollection<ProjectTechnology> ProjectTechnology { get; set; }
         public ICollection<EmployeeTechnology> EmployeeTechnology { get; set; }
         public ICollection<SOWRequirementTechnology> SOWRequirementTechnology { get; set; }
@@ -21,24 +22,5 @@ namespace DataServices.Models
         public ICollection<NewLeadEnquiryTechnology> NewLeadEnquiryTechnology { get; set; }
         public Department? Department { get; set; }
     }
-    public class TechnologyDTO : AuditData
-    {
-        public string Name { get; set; }
-        public string? Department { get; set; }
-    }
-    public class TechnologyCreateDTO
-    {
-        [Required]
-        [MinLength(3)]
-        [MaxLength(50)]
-        [StringLength(50)]
-        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Special characters and Digits are not allowed.")]
-        public string Name { get; set; }
-        public string? Department { get; set; }
-    }
-    public class TechnologyUpdateDTO : TechnologyCreateDTO
-    {
-        public string Id { get; set; }
-        public bool IsActive { get; set; }
-    }
+   
 }

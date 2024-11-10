@@ -1,4 +1,5 @@
 ﻿using DataServices.Models;
+using DataServices.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ namespace TechnologyApi.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<TechnologyDTO>>> GetTechnologies()
+        public async Task<ActionResult<IEnumerable<Technology>>> GetTechnologies()
         {
             _logger.LogInformation("Fetching all technologies");
             var technologies = await _technologyService.GetAll();
@@ -41,7 +42,7 @@ namespace TechnologyApi.Controllers
 
         [HttpGet("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<TechnologyDTO>> GetTechnology(string id)
+        public async Task<ActionResult<Technology>> GetTechnology(string id)
         {
             _logger.LogInformation("Fetching technology with id: {Id}", id);
             var technology = await _technologyService.Get(id);
@@ -51,26 +52,23 @@ namespace TechnologyApi.Controllers
                 _logger.LogWarning("Technology with id: {Id} not found", id);
                 return NotFound();
             }
-
+            return Ok(technology);
             // Check if the logged-in user has the "Admin" role
-            if (User.IsInRole("Admin"))
-            {
-                return Ok(technology); // Admin can see both active and inactive 
-            }
-            else if (technology.IsActive)
-            {
-                return Ok(technology); // Non-admins can only see active data
-            }
-            else
-            {
-                _logger.LogWarning("Technology with id: {Id} is inactive and user does not have admin privileges", id);
-                return Forbid(); // Return forbidden if non-admin tries to access an inactive 
-            }
+            //if (User.IsInRole("Admin"))
+            //{
+            //    return Ok(technology); // Admin can see both active and inactive 
+            //}
+            //else (technology.IsActive)
+            //{
+            //    return Ok(technology); // Non-admins can only see active data
+            //}
+
+
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<TechnologyDTO>> Create([FromBody] TechnologyCreateDTO createDto)
+        public async Task<ActionResult<TechnologyViewModel>> Create([FromBody] TechnologyViewModel createDto)
         {
             if (!ModelState.IsValid)
             {
@@ -81,7 +79,7 @@ namespace TechnologyApi.Controllers
 
             try
             {
-                var technologyDto = new TechnologyDTO { Name = createDto.Name, Department = createDto.Department };
+                var technologyDto = new TechnologyViewModel { Name = createDto.Name, Department = createDto.Department };
                 var createdTechnology = await _technologyService.Add(technologyDto);
                 return CreatedAtAction(nameof(GetTechnology), new { id = createdTechnology.Id }, createdTechnology);
             }
@@ -94,48 +92,20 @@ namespace TechnologyApi.Controllers
 
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> UpdateTechnology(string id, [FromBody] TechnologyUpdateDTO updateDto)
+        public async Task<IActionResult> UpdateTechnology(string id, [FromBody] TechnologyViewModel updateDto)
         {
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid model state for updating technology");
                 return BadRequest(ModelState);
             }
-            if (id != updateDto.Id)
-            {
-                _logger.LogWarning("Technology id mismatch");
-                return BadRequest("Technology ID mismatch");
-            }
-
-            // Retrieve the technology by ID
-            var existingTechnology = await _technologyService.Get(id);
-
-            if (existingTechnology == null)
-            {
-                _logger.LogWarning("Technology with id: {Id} not found", id);
-                return NotFound();
-            }
-
-            // Only admins can reactivate inactive records
-            if (!existingTechnology.IsActive && !User.IsInRole("Admin"))
-            {
-                _logger.LogWarning("User without admin privileges attempted to reactivate technology with id: {Id}", id);
-                return Forbid();
-            }
-            // Check if technology name is unique
-            var technologyByName = await _technologyService.Get(updateDto.Name);
-            if (technologyByName != null && technologyByName.Id != id)
-            {
-                _logger.LogWarning("Technology with name '{Name}' already exists", updateDto.Name);
-                return BadRequest($"Technology with name '{updateDto.Name}' already exists.");
-            }
 
             _logger.LogInformation("Updating technology with id: {Id}", id);
 
             try
             {
-                var technologyDto = new TechnologyDTO { Id = id, Name = updateDto.Name, Department = updateDto.Department, IsActive = updateDto.IsActive };
-                await _technologyService.Update(technologyDto);
+                await _technologyService.Update(id, updateDto);
+                return Content("Updated Successfully");
             }
             catch (KeyNotFoundException ex)
             {
