@@ -87,7 +87,7 @@ namespace NewLeadApi.Controllers
  */
 
         [HttpPost("uploadFile")]
-        [Authorize(Roles = "Admin, Director, Project Manager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UploadFile(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
         {
             try

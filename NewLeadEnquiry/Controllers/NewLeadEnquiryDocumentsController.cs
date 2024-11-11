@@ -45,7 +45,6 @@ namespace NewLeadApi.Controllers
             return CreatedAtAction(nameof(GetDocument), new { id = createdDocument.NewLeadEnquiryID }, createdDocument);
         }
 
-        // PUT: api/NewLeadEnquiryDocuments/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin, Director, Project Manager, Team Lead")]
         public async Task<ActionResult<NewLeadEnquiryDocumentsDTO>> UpdateDocument(string id, NewLeadEnquiryDocumentsDTO documentDTO)
@@ -66,7 +65,6 @@ namespace NewLeadApi.Controllers
             }
         }
 
-        // DELETE: api/NewLeadEnquiryDocuments/{id}
         [HttpPatch("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteDocument(string id)

@@ -10,11 +10,13 @@ namespace LeadEnquiryApi.Services
     {
         private readonly DataBaseContext _context;
         private readonly IRepository<NewLeadEnquiryTechnology> _repository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public NewLeadEnquiryTechnologyService(DataBaseContext context, IRepository<NewLeadEnquiryTechnology> repository)
+        public NewLeadEnquiryTechnologyService(DataBaseContext context, IRepository<NewLeadEnquiryTechnology> repository, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
             _repository = repository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<IEnumerable<NewLeadEnquiryTechnologyDTO>> GetAll()
@@ -69,6 +71,7 @@ namespace LeadEnquiryApi.Services
 
         public async Task<NewLeadEnquiryTechnologyDTO> Add(NewLeadEnquiryTechnologyDTO dto)
         {
+            //var leadTechnology = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
 
             var newLeadEnquiry = await _context.TblNewLeadEnquiry
                 .FirstOrDefaultAsync(ne => ne.Id == dto.NewLeadEnquiryID);
@@ -86,9 +89,9 @@ namespace LeadEnquiryApi.Services
                 TechnologyID = technology.Id,
                 IsActive = true,
                 CreatedBy = dto.CreatedBy,
-                CreatedDate = DateTime.UtcNow,
+                CreatedDate = DateTime.Now,
                 UpdatedBy = dto.UpdatedBy,
-                UpdatedDate = DateTime.UtcNow
+                UpdatedDate = DateTime.Now
             };
             _context.TblNewLeadEnquiryTechnology.Add(newleadenquiryTechnology);
             await _context.SaveChangesAsync();
@@ -99,6 +102,8 @@ namespace LeadEnquiryApi.Services
 
         public async Task<NewLeadEnquiryTechnologyDTO> Update(NewLeadEnquiryTechnologyDTO dto)
         {
+            //var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadTechnology")?.Value;
+
             var newleadenquiryTechnology = await _context.TblNewLeadEnquiryTechnology.FindAsync(dto.Id);
 
             if (newleadenquiryTechnology == null)
