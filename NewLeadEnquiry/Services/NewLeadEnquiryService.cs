@@ -1,6 +1,8 @@
 ﻿using DataServices.Data;
 using DataServices.Models;
 using DataServices.Repositories;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -138,48 +140,112 @@ namespace NewLeadApi.Services
 
         public async Task<string> UploadFileAsync(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
         {
-            string filePath = "";
+            // Generate the filename with the original document name and current date.
+            var filename = Path.GetFileNameWithoutExtension(newLeadEnquiryFileName.FileName.FileName) + Path.GetExtension(newLeadEnquiryFileName.FileName.FileName);
+
             try
             {
-                if (newLeadEnquiryFileName.FileName.Length > 0)
+                // Get the file extension
+                var extension = Path.GetExtension(filename);
+
+                // Define the upload directory path
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads\\Resumes");
+
+                // Create the directory if it does not exist
+                if (!Directory.Exists(filepath))
                 {
-                    var file = newLeadEnquiryFileName.FileName;
-                    filePath = Path.GetFullPath($"C:\\Users\\skolli5\\UpdatedProfiles\\Resumes\\{file.FileName}");
-                    // Save the file
-                    using (var stream = System.IO.File.Create(filePath))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    // Update the enquiry's profile if ID is provided
-                    if (!string.IsNullOrEmpty(newLeadEnquiryFileName.Id))
-                    {
-                        var newLeadEnquiry = await Get(newLeadEnquiryFileName.Id);
-
-                        if (newLeadEnquiry != null)
-                        {
-                            newLeadEnquiry.FileName = file.FileName;
-                            await Update(newLeadEnquiry);
-                        }
-                    }
-                    else
-                    {
-                        return file.FileName;
-                    }
+                    Directory.CreateDirectory(filepath);
                 }
-                else
+
+                // Combine the directory and filename for the full path
+                var completepath = Path.Combine(filepath, filename);
+
+                // Save the file
+                using (var stream = new FileStream(completepath, FileMode.Create))
                 {
-                    throw new Exception("The uploaded file is empty.");
+                    await newLeadEnquiryFileName.FileName.CopyToAsync(stream);
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception("An error occurred while uploading the file: " + ex.Message);
+                // Log or handle the exception as needed
+                Console.WriteLine(ex.Message);
             }
-
-            return filePath;
+            return filename;
         }
 
+        public async Task<FileContentResult> DownloadFileAsync(string filename)
+        {
+            // Construct the full file path
+            var completePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads\\Resumes", filename);
+
+            // Check if the file exists
+            if (!System.IO.File.Exists(completePath))
+            {
+                return null; // Return null if file does not exist
+            }
+
+            // Determine the content type based on the file extension
+            var provider = new FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(completePath, out var contentType))
+            {
+                contentType = "application/octet-stream";
+            }
+
+            // Read the file as a byte array
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(completePath);
+
+            // Return the file as FileContentResult
+            return new FileContentResult(fileBytes, contentType)
+            {
+                FileDownloadName = filename
+            };
+        }
+
+        /* public async Task<string> UploadFileAsync(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
+         {
+             string filePath = "";
+             try
+             {
+                 if (newLeadEnquiryFileName.FileName.Length > 0)
+                 {
+                     var file = newLeadEnquiryFileName.FileName;
+                     filePath = Path.GetFullPath($"C:\\Users\\skolli5\\UpdatedProfiles\\Resumes\\{file.FileName}");
+                     // Save the file
+                     using (var stream = System.IO.File.Create(filePath))
+                     {
+                         await file.CopyToAsync(stream);
+                     }
+
+                     // Update the enquiry's profile if ID is provided
+                     if (!string.IsNullOrEmpty(newLeadEnquiryFileName.Id))
+                     {
+                         var newLeadEnquiry = await Get(newLeadEnquiryFileName.Id);
+
+                         if (newLeadEnquiry != null)
+                         {
+                             newLeadEnquiry.FileName = file.FileName;
+                             await Update(newLeadEnquiry);
+                         }
+                     }
+                     else
+                     {
+                         return file.FileName;
+                     }
+                 }
+                 else
+                 {
+                     throw new Exception("The uploaded file is empty.");
+                 }
+             }
+             catch (Exception ex)
+             {
+                 throw new Exception("An error occurred while uploading the file: " + ex.Message);
+             }
+
+             return filePath;
+         }
+ */
         public async Task<NewLeadEnquiryDTO> Update(NewLeadEnquiryDTO dto)
         {
 
