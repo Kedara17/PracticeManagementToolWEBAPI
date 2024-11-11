@@ -69,6 +69,23 @@ namespace NewLeadApi.Controllers
             }
         }
 
+        /* [HttpPost("uploadFile")]
+         [Authorize(Roles = "Admin, Director, Project Manager")]
+         public async Task<IActionResult> UploadFile(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
+         {
+             try
+             {
+                 var filePath = await _service.UploadFileAsync(newLeadEnquiryFileName);
+                 return Ok(new { message = "Your File is uploaded successfully.", path = filePath });
+             }
+             catch (Exception ex)
+             {
+                 _logger.LogError(ex, "Error uploading file");
+                 return StatusCode(500, "Internal server error: " + ex.Message);
+             }
+         }
+ */
+
         [HttpPost("uploadFile")]
         [Authorize(Roles = "Admin, Director, Project Manager")]
         public async Task<IActionResult> UploadFile(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName)
@@ -83,6 +100,19 @@ namespace NewLeadApi.Controllers
                 _logger.LogError(ex, "Error uploading file");
                 return StatusCode(500, "Internal server error: " + ex.Message);
             }
+        }
+
+        [HttpGet("download")]
+        public async Task<IActionResult> DownloadFile([FromQuery] string filename)
+        {
+            var fileResult = await _service.DownloadFileAsync(filename);
+
+            if (fileResult == null)
+            {
+                return NotFound("File not found.");
+            }
+
+            return fileResult;
         }
 
 

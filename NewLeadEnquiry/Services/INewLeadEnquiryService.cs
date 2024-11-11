@@ -1,4 +1,5 @@
 ﻿using DataServices.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace NewLeadApi.Services
 {
@@ -8,6 +9,7 @@ namespace NewLeadApi.Services
         public Task<NewLeadEnquiryDTO> Get(string id);
         public Task<NewLeadEnquiryDTO> Add(NewLeadEnquiryDTO dto);
         Task<string> UploadFileAsync(NewLeadEnquiryFileNameDTO newLeadEnquiryFileName);
+        Task<FileContentResult> DownloadFileAsync(string filename);
         public Task<NewLeadEnquiryDTO> Update(NewLeadEnquiryDTO dto);
         public Task<bool> Delete(string id);
     }

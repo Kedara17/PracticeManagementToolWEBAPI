@@ -148,9 +148,7 @@ namespace POCAPI.Services
             pocDto.Id = poc.Id;
             return pocDto;
         }
-
-        [HttpPost]
-        public async Task<string> UploadFileAsync(POCDocumentDTO pocDto)
+       public async Task<string> UploadFileAsync(POCDocumentDTO pocDto)
         {
             // Generate the filename with the original document name and current date.
             var filename = Path.GetFileNameWithoutExtension(pocDto.Document.FileName) + Path.GetExtension(pocDto.Document.FileName);
@@ -186,8 +184,7 @@ namespace POCAPI.Services
             return filename;
         }
 
-        [HttpGet("download")]
-        public async Task<FileContentResult> DownloadFileAsync(string filename)
+       public async Task<FileContentResult> DownloadFileAsync(string filename)
         {
             // Construct the full file path
             var completePath = Path.Combine(Directory.GetCurrentDirectory(), "Uploads\\Documents", filename);

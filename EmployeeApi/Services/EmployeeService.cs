@@ -323,7 +323,6 @@ namespace EmployeeApi.Services
          }
  */
 
-        [HttpPost]
         public async Task<string> UploadFileAsync(EmployeeProfileDTO employeeProfile)
         {
             var filename = Path.GetFileNameWithoutExtension(employeeProfile.Profile.FileName) + Path.GetExtension(employeeProfile.Profile.FileName);
@@ -358,8 +357,6 @@ namespace EmployeeApi.Services
             }
             return filename;
         }
-
-        [HttpGet("download")]
         public async Task<FileContentResult> DownloadFileAsync(string filename)
         {
             // Construct the full file path
