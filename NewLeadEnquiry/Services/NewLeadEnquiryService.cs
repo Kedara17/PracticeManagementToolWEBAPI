@@ -47,6 +47,7 @@ namespace NewLeadApi.Services
                 CreatedDate = enquiry.CreatedDate,
                 UpdatedBy = enquiry.UpdatedBy,
                 UpdatedDate = enquiry.UpdatedDate,
+                FileName = enquiry.FileName,
             }).ToList();
             return dto;
         }
@@ -59,6 +60,9 @@ namespace NewLeadApi.Services
             .FirstOrDefaultAsync(ne => ne.Id == id);
 
             if (newLeadEnquiry == null) return null;
+
+            var document = await _context.TblNewLeadEnquiryDocuments
+        .FirstOrDefaultAsync(doc => doc.NewLeadEnquiryID == newLeadEnquiry.Id);
 
             return new NewLeadEnquiryDTO
             {
@@ -77,6 +81,7 @@ namespace NewLeadApi.Services
                 CreatedDate = newLeadEnquiry.CreatedDate,
                 UpdatedBy = newLeadEnquiry.UpdatedBy,
                 UpdatedDate = newLeadEnquiry.UpdatedDate,
+                FileName = document?.FileName,
             };
         }
 
@@ -87,11 +92,11 @@ namespace NewLeadApi.Services
             var newLeadEnquiry = new NewLeadEnquiry();
 
             // Check if the Enquiry name already exists
-                 var existingEnquiry = await _context.TblNewLeadEnquiry
-                .FirstOrDefaultAsync(t => t.CompanyName == dto.CompanyName);
+            //     var existingEnquiry = await _context.TblNewLeadEnquiry
+            //    .FirstOrDefaultAsync(t => t.CompanyName == dto.CompanyName);
 
-            if (existingEnquiry != null)
-                throw new ArgumentException("A enquiry with the same name already exists.");
+            //if (existingEnquiry != null)
+            //    throw new ArgumentException("A enquiry with the same name already exists.");
 
             newLeadEnquiry.CompanyName = dto.CompanyName;
             newLeadEnquiry.CompanyRepresentative = dto.CompanyRepresentative;
@@ -102,23 +107,35 @@ namespace NewLeadApi.Services
             newLeadEnquiry.AssignTo = dto.AssignTo;
             newLeadEnquiry.Status = dto.Status;
             newLeadEnquiry.Comments = dto.Comments;
-            newLeadEnquiry.IsActive = true; // Assuming new enquiries are active by default
+            newLeadEnquiry.IsActive = true; 
             newLeadEnquiry.CreatedBy = dto.CreatedBy;
-            newLeadEnquiry.CreatedDate = DateTime.Now;           
+            newLeadEnquiry.CreatedDate = DateTime.Now;
+            newLeadEnquiry.FileName = dto.FileName;
 
-            dto.Id = newLeadEnquiry.Id;
             await _context.TblNewLeadEnquiry.AddAsync(newLeadEnquiry);
             await _context.SaveChangesAsync();
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(dto.FileName))
-            {                
-                await _context.TblNewLeadEnquiryDocuments.AddAsync(new NewLeadEnquiryDocuments
-                {
-                    NewLeadEnquiryID = newLeadEnquiry.Id,
-                    FileName = dto.FileName
-                });
+            {          
+                var existingDocument = await _context.TblNewLeadEnquiryDocuments
+           .FirstOrDefaultAsync(doc => doc.NewLeadEnquiryID == newLeadEnquiry.Id);
 
+                if (existingDocument == null)
+                {
+                    // Add new document if it doesn't exist
+                    await _context.TblNewLeadEnquiryDocuments.AddAsync(new NewLeadEnquiryDocuments
+                    {
+                        NewLeadEnquiryID = newLeadEnquiry.Id,
+                        FileName = dto.FileName
+                    });
+                }
+                else
+                {
+                    // Update existing document
+                    existingDocument.FileName = dto.FileName;
+                    _context.Entry(existingDocument).State = EntityState.Modified;
+                }
             }
 
             // Handle technologies
@@ -252,11 +269,7 @@ namespace NewLeadApi.Services
             //var userName = _httpContextAccessor.HttpContext?.User?.FindFirst("LeadEnquiry")?.Value;
 
             // Check if the Enquiry name already exists
-            var existingEnquiry = await _context.TblNewLeadEnquiry
-               .FirstOrDefaultAsync(t => t.CompanyName == dto.CompanyName);
-
-            if (existingEnquiry != null)
-                throw new ArgumentException("A Enquiry with the same name already exists.");
+           
 
             var newLeadEnquiry = await _context.TblNewLeadEnquiry.FindAsync(dto.Id);
             if (newLeadEnquiry == null)
