@@ -117,25 +117,13 @@ namespace NewLeadApi.Services
 
             // Set the Profile property if a file is uploaded
             if (!string.IsNullOrEmpty(dto.FileName))
-            {          
-                var existingDocument = await _context.TblNewLeadEnquiryDocuments
-           .FirstOrDefaultAsync(doc => doc.NewLeadEnquiryID == newLeadEnquiry.Id);
-
-                if (existingDocument == null)
+            {
+                var newDocument = new NewLeadEnquiryDocuments
                 {
-                    // Add new document if it doesn't exist
-                    await _context.TblNewLeadEnquiryDocuments.AddAsync(new NewLeadEnquiryDocuments
-                    {
-                        NewLeadEnquiryID = newLeadEnquiry.Id,
-                        FileName = dto.FileName
-                    });
-                }
-                else
-                {
-                    // Update existing document
-                    existingDocument.FileName = dto.FileName;
-                    _context.Entry(existingDocument).State = EntityState.Modified;
-                }
+                    NewLeadEnquiryID = newLeadEnquiry.Id,
+                    FileName = dto.FileName
+                };
+                await _context.TblNewLeadEnquiryDocuments.AddAsync(newDocument);
             }
 
             // Handle technologies
